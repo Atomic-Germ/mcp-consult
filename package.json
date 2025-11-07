@@ -26,6 +26,6 @@
     "vitest": "^1.0.0"
   },
   "keywords": ["mcp", "ollama", "ai", "consultation"],
-  "author": "",
+  "author": "Atomic-Germ",
   "license": "MIT"
 }

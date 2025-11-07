@@ -3,6 +3,7 @@ import { ExecutionContext } from "./types";
 import { callToolHandler } from "./handlers";
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
+const DEFAULT_TOOL_TIMEOUT_MS = Number(process.env.MCP_TOOL_TIMEOUT_MS || 10000);
 
 export async function invokeOllama(model: string, prompt: string, system?: string): Promise<any> {
   const resp = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
@@ -23,14 +24,31 @@ export function registerTool(name: string, fn: (args: any) => Promise<any>) {
   toolRegistry[name] = fn;
 }
 
-export async function invokeTool(name: string, args: any): Promise<any> {
+function withTimeout<T>(p: Promise<T>, ms: number, name?: string): Promise<T> {
+  if (ms == null || ms === Infinity) return p;
+  let timer: NodeJS.Timeout | null = null;
+  const t = new Promise<never>((_, rej) => {
+    timer = setTimeout(() => rej(new Error(`Tool invocation timed out after ${ms}ms${name ? `: ${name}` : ""}`)), ms);
+  });
+  return Promise.race([p.then((r) => {
+    if (timer) clearTimeout(timer);
+    return r;
+  }), t]) as Promise<T>;
+}
+
+export async function invokeTool(name: string, args: any, options?: { timeoutMs?: number }): Promise<any> {
   const fn = toolRegistry[name];
-  if (fn) return await fn(args);
+  const timeoutMs = options && typeof options.timeoutMs === "number" ? options.timeoutMs : DEFAULT_TOOL_TIMEOUT_MS;
+
+  if (fn) {
+    const p = Promise.resolve(fn(args));
+    return await withTimeout(p, timeoutMs, name);
+  }
 
   // Fallback: try calling local MCP handlers if available
   try {
-    const res = await callToolHandler({ name, arguments: args });
-    return res;
+    const p = Promise.resolve(callToolHandler({ name, arguments: args }));
+    return await withTimeout(p, timeoutMs, name);
   } catch (e) {
     throw new Error(`Unknown tool or handler failed: ${name} (${(e as Error).message})`);
   }

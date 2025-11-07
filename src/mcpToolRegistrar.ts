@@ -1,6 +1,7 @@
 import { registerTool } from "./invoke";
 import { listTools, callToolHandler } from "./handlers";
 import * as logger from "./logger";
+import { getAllowedTools } from "./config";
 
 function minimalForSchema(propSchema: any): any {
   if (!propSchema) return "test";
@@ -78,16 +79,30 @@ function mapArgsFromSchema(name: string, schema: any, invokeArgs: any): any {
  * Register MCP tools exposed by local handlers into the runtime tool registry.
  * If `healthCheck` is true, attempts a minimal invocation of each tool using required schema keys.
  */
-export async function registerMcpTools(healthCheck = false): Promise<string[]> {
+export async function registerMcpTools(healthCheck = false, allowedTools?: string[]): Promise<string[]> {
   const res = listTools();
   const tools = res.tools || [];
   const names: string[] = [];
   const registered = new Set<string>();
+  // Determine allowed tools: function argument takes precedence, then env/file config
+  let allowedSet: Set<string> | undefined;
+  if (Array.isArray(allowedTools) && allowedTools.length > 0) {
+    allowedSet = new Set(allowedTools.map((s) => String(s)));
+  } else {
+    const cfg = getAllowedTools();
+    if (Array.isArray(cfg) && cfg.length > 0) allowedSet = new Set(cfg.map((s) => String(s)));
+  }
 
   for (const t of tools) {
     const name = t.name;
     if (!name || typeof name !== "string") {
       logger.warn("Skipping tool with invalid name", name);
+      continue;
+    }
+
+    // If a server-side whitelist is configured, only register allowed tools
+    if (allowedSet && !allowedSet.has(name)) {
+      logger.warn(`Skipping tool not in allowed list: ${name}`);
       continue;
     }
 

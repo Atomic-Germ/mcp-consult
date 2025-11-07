@@ -16,8 +16,9 @@ jobs:
           node-version: '18'
           cache: 'npm'
       - name: Install
-        run: brew install patch-package
-        run: npm i
+        run: |
+          brew install patch-package
+          npm i
       - name: Build
         run: npm run build
       - name: Run tests

@@ -91,6 +91,22 @@ async function main() {
           .map((c: any) => c.text)
           .join("\n");
         console.log("consult_ollama result:\n", out);
+        // Save this consult to memory (Remember MCP / memory server) if available
+        console.log("\nCalling 'remember_consult' to persist this consult (best-effort)...");
+        try {
+          const rememberRes = await client.callTool(
+            { name: "remember_consult", arguments: { prompt, model: modelName, response: out, key: `demo-${Date.now()}` } },
+            CallToolResultSchema
+          );
+          if (rememberRes.isError) {
+            console.error("remember_consult returned error:", rememberRes);
+          } else {
+            const lines = (Array.isArray(rememberRes.content) ? rememberRes.content : []).map((c: any) => (c.type === "text" ? c.text : JSON.stringify(c))).join("\n");
+            console.log("remember_consult result:\n", lines);
+          }
+        } catch (err: any) {
+          console.error("remember_consult failed:", err instanceof Error ? err.message : String(err));
+        }
       }
     } else {
       console.log("No consult_ollama result (timed out or failed).");

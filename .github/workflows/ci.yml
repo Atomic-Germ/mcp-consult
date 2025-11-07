@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,7 +16,8 @@ jobs:
           node-version: '18'
           cache: 'npm'
       - name: Install
-        run: npm ci
+        run: brew install patch-package
+        run: npm i
       - name: Build
         run: npm run build
       - name: Run tests

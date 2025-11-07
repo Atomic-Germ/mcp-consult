@@ -2,6 +2,10 @@
 
 An MCP (Model Context Protocol) server that allows consulting with Ollama models for reasoning from alternative viewpoints.
 
+<a href="https://glama.ai/mcp/servers/@Atomic-Germ/mcp-consult">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@Atomic-Germ/mcp-consult/badge" alt="Ollama Consult Server MCP server" />
+</a>
+
 ## Features
 
 - **consult_ollama**: Send prompts to Ollama models and get responses

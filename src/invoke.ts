@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ExecutionContext } from "./types";
+import { callToolHandler } from "./handlers";
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
 
@@ -24,8 +25,15 @@ export function registerTool(name: string, fn: (args: any) => Promise<any>) {
 
 export async function invokeTool(name: string, args: any): Promise<any> {
   const fn = toolRegistry[name];
-  if (!fn) throw new Error(`Unknown tool: ${name}`);
-  return await fn(args);
+  if (fn) return await fn(args);
+
+  // Fallback: try calling local MCP handlers if available
+  try {
+    const res = await callToolHandler({ name, arguments: args });
+    return res;
+  } catch (e) {
+    throw new Error(`Unknown tool or handler failed: ${name} (${(e as Error).message})`);
+  }
 }
 
 function resolvePath(obj: any, path: string): any {

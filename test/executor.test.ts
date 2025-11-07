@@ -4,6 +4,7 @@ import axios from "axios";
 import { FlowExecutor } from "../src/executor";
 import { InMemoryStore } from "../src/memory";
 import type { Flow } from "../src/types";
+import * as handlers from "../src/handlers";
 
 beforeEach(() => {
   vi.restoreAllMocks();
@@ -66,5 +67,24 @@ describe("FlowExecutor", () => {
     const ctx = await executor.run(flow);
     expect(ctx.stepResults["s1"].success).toBe(true);
     expect(ctx.memory["out"]).toBe("finally");
+  });
+
+  it("falls back to local MCP handler when tool not registered", async () => {
+    // mock the handlers.callToolHandler to simulate a local MCP tool
+    const fakeRes = { content: [{ type: "text", text: "tool-output" }] };
+    vi.spyOn(handlers, "callToolHandler").mockResolvedValue(fakeRes as any);
+
+    const mem = new InMemoryStore();
+    const executor = new FlowExecutor(mem);
+
+    const flow: Flow = {
+      id: "flow4",
+      steps: [{ id: "t1", tool: "some_local_tool", prompt: "run", memoryWrite: "toolRes" }],
+    };
+
+    const ctx = await executor.run(flow);
+    expect(ctx.stepResults["t1"].success).toBe(true);
+    // The output should be the raw tool response object returned by the handler
+    expect(ctx.memory["toolRes"]).toEqual(fakeRes);
   });
 });

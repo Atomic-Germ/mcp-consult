@@ -1,0 +1,4 @@
+
+> mcp-ollama-consult@1.0.0 build
+> tsc
+

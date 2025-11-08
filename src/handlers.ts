@@ -12,6 +12,44 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
 // Ensure a reasonable default timeout for Ollama calls
 axios.defaults.timeout = axios.defaults.timeout || 60_000;
 
+// Helper: determine whether a model name looks like a cloud model
+function looksLikeCloudModelName(n: string | undefined): boolean {
+  if (!n) return false;
+  // Accept names that contain ':cloud' or '-cloud' (covers common Ollama naming)
+  return n.includes(':cloud') || n.includes('-cloud');
+}
+
+// Helper: given a model object from /api/tags, decide if it's safe to use
+function modelObjIsSafe(m: any): boolean {
+  if (!m) return false;
+  const name = m.name || "";
+  if (looksLikeCloudModelName(name)) return true;
+  // Some Ollama responses include flags like 'installed', 'local', 'downloaded' or 'available'
+  if (m.installed || m.local || m.downloaded || m.available) return true;
+  return false;
+}
+
+// Helper: check availability for a given model name by querying tags.
+async function isModelAvailable(modelName: string): Promise<boolean> {
+  if (!modelName) return false;
+  // Allow opt-out for strict checking via env var. By default we are permissive to
+  // avoid breaking existing users/tests. Set OLLAMA_STRICT_MODEL_CHECK=true to
+  // enable strict availability checking (cloud or reported-installed only).
+  const STRICT = process.env.OLLAMA_STRICT_MODEL_CHECK === 'true';
+  if (!STRICT) return true;
+  if (looksLikeCloudModelName(modelName)) return true;
+  try {
+    const resp = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
+    const models = resp.data.models || [];
+    const found = models.find((m: any) => m && m.name === modelName);
+    if (!found) return false;
+    return modelObjIsSafe(found);
+  } catch (e) {
+    // If we couldn't query Ollama, be conservative and return false so callers can handle gracefully
+    return false;
+  }
+}
+
 export function listTools() {
   return {
     tools: [
@@ -78,6 +116,31 @@ export async function callToolHandler(params: { name: string; arguments?: any })
       const system_prompt = args?.system_prompt as string | undefined;
 
       try {
+        // Sanity-check model availability to avoid 404s: accept cloud models or definitely-installed locals
+        const available = await isModelAvailable(model);
+        if (!available) {
+          // Try to provide suggestions (cloud/installed models)
+          let suggestions: string[] = [];
+          try {
+            const resp = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
+            const raw = resp.data.models || [];
+            suggestions = raw.filter((m: any) => modelObjIsSafe(m)).map((m: any) => m.name).slice(0, 5);
+          } catch (e) {
+            // ignore
+          }
+
+          const suggestText = suggestions.length > 0 ? ` Available (cloud/installed): ${suggestions.join(", ")}` : "";
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Model '${model}' is not available locally and is not a recognized cloud model. Use a model name that ends with ':cloud' or '-cloud', or install the model locally.${suggestText}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
         const response = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
           model,
           prompt,
@@ -110,13 +173,25 @@ export async function callToolHandler(params: { name: string; arguments?: any })
     case "list_ollama_models": {
       try {
         const response = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
-        const models = (response.data.models || []).map((m: any) => m.name).join(", ");
+        const rawModels = response.data.models || [];
+        const safe = rawModels.filter((m: any) => modelObjIsSafe(m)).map((m: any) => m.name);
+
+        let modelsList: string[] = [];
+        if (safe.length > 0) {
+          modelsList = safe;
+        } else {
+          // Fallback: prefer cloud-like names if present, otherwise return raw list
+          const cloudOnly = rawModels.filter((m: any) => m && looksLikeCloudModelName(m.name)).map((m: any) => m.name);
+          modelsList = cloudOnly.length > 0 ? cloudOnly : rawModels.map((m: any) => m.name);
+        }
+
+        const note = safe.length > 0 ? " (cloud models and installed locals)" : " (no installed locals detected; showing cloud-like or raw models)";
 
         return {
           content: [
             {
               type: "text",
-              text: `Available models: ${models}`,
+              text: `Available models${note}: ${modelsList.join(", ")}`,
             },
           ],
         };
@@ -153,11 +228,40 @@ export async function callToolHandler(params: { name: string; arguments?: any })
 
       let modelsToUse: string[] = [];
       if (Array.isArray(modelsArg) && modelsArg.length > 0) {
-        modelsToUse = modelsArg;
+        const ok: string[] = [];
+        const bad: string[] = [];
+        for (const m of modelsArg) {
+          try {
+            if (await isModelAvailable(m)) ok.push(m);
+            else bad.push(m);
+          } catch (e) {
+            bad.push(m);
+          }
+        }
+
+        if (ok.length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `None of the requested models are available (cloud or installed): ${bad.join(", ")}. Try using -cloud models or install the models locally.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        if (bad.length > 0) {
+          // Inform about skipped models
+          // We'll continue with the available ones
+        }
+
+        modelsToUse = ok;
       } else {
         try {
           const resp = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
-          modelsToUse = (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
+          const candidates = (resp.data.models || []).filter((m: any) => modelObjIsSafe(m)).map((m: any) => m.name).slice(0, 2);
+          modelsToUse = candidates.length > 0 ? candidates : (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
         } catch (err) {
           modelsToUse = ["llama2"];
         }

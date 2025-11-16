@@ -17,9 +17,9 @@ jobs:
           cache: 'npm'
       - name: Install
         run: |
-          brew install patch-package
-          npm i
+          brew install patch-package pnpm
+          pnpm i
       - name: Build
-        run: npm run build
+        run: pnpm build
       - name: Run tests
-        run: npm test
+        run: pnpm test

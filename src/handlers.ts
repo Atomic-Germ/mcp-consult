@@ -6,6 +6,13 @@ import os from "os";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
+import { 
+  SequentialChainParams, 
+  SequentialChainResult, 
+  ConversationState,
+  ChainStep,
+  ConversationMessage 
+} from "./conversationTypes.js";
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
 
@@ -98,6 +105,54 @@ export function listTools() {
             response: { type: "string" },
           },
           required: ["prompt"],
+        },
+      },
+      {
+        name: "sequential_consultation_chain",
+        description: "Run a sequence of consultations where each consultant builds on previous responses, enabling complex multi-step reasoning.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            consultants: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  model: { type: "string" },
+                  prompt: { type: "string" },
+                  systemPrompt: { type: "string" },
+                  temperature: { type: "number" },
+                  timeoutMs: { type: "number" }
+                },
+                required: ["id", "model", "prompt"]
+              }
+            },
+            context: {
+              type: "object",
+              properties: {
+                systemPrompt: { type: "string" },
+                variables: { type: "object" },
+                passThrough: { type: "boolean" }
+              }
+            },
+            flowControl: {
+              type: "object",
+              properties: {
+                continueOnError: { type: "boolean" },
+                maxRetries: { type: "number" },
+                retryDelayMs: { type: "number" }
+              }
+            },
+            memory: {
+              type: "object",
+              properties: {
+                storeConversation: { type: "boolean" },
+                memoryKey: { type: "string" }
+              }
+            }
+          },
+          required: ["consultants"]
         },
       },
     ],
@@ -487,6 +542,213 @@ export async function callToolHandler(params: { name: string; arguments?: any })
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         return { content: [{ type: "text", text: `Failed to save memory: ${message}` }], isError: true };
+      }
+    }
+
+    case "sequential_consultation_chain": {
+      const params = args as SequentialChainParams;
+      const consultants = params.consultants || [];
+      const context = params.context || {};
+      const flowControl = params.flowControl || {};
+      const memory = params.memory || {};
+
+      if (!consultants || consultants.length === 0) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Error: No consultants provided for sequential chain",
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      try {
+        const conversationId = `chain-${Date.now()}`;
+        const startTime = Date.now();
+        const steps: ChainStep[] = [];
+        const messages: ConversationMessage[] = [];
+        let conversationContext = "";
+
+        // Add system prompt if provided
+        if (context.systemPrompt) {
+          conversationContext += `System: ${context.systemPrompt}\n\n`;
+        }
+
+        for (let i = 0; i < consultants.length; i++) {
+          const consultant = consultants[i];
+          const stepStartTime = Date.now();
+          let retryCount = 0;
+          let stepSuccess = false;
+          let stepResponse = "";
+          let stepError: string | undefined;
+
+          // Build prompt with conversation context if passThrough is enabled
+          let finalPrompt = consultant.prompt;
+          if (context.passThrough && conversationContext) {
+            finalPrompt = `${conversationContext}${consultant.id}: ${consultant.prompt}`;
+          }
+
+          while (!stepSuccess && retryCount <= (flowControl.maxRetries || 0)) {
+            try {
+              // Check model availability
+              const available = await isModelAvailable(consultant.model);
+              if (!available) {
+                throw new Error(`Model '${consultant.model}' is not available`);
+              }
+
+              // Make the consultation call
+              const response = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
+                model: consultant.model,
+                prompt: finalPrompt,
+                system: consultant.systemPrompt || context.systemPrompt,
+                temperature: consultant.temperature,
+                stream: false,
+              }, {
+                timeout: consultant.timeoutMs || 60000
+              });
+
+              stepResponse = response.data.response;
+              stepSuccess = true;
+
+              // Add to conversation context for next consultant
+              if (context.passThrough) {
+                conversationContext += `${consultant.id}: ${consultant.prompt}\nResponse: ${stepResponse}\n\n`;
+              }
+
+              // Create message record
+              const message: ConversationMessage = {
+                consultantId: consultant.id,
+                role: 'assistant',
+                content: stepResponse,
+                timestamp: new Date(),
+                metadata: {
+                  model: consultant.model,
+                  temperature: consultant.temperature,
+                  duration: Date.now() - stepStartTime
+                }
+              };
+              messages.push(message);
+
+            } catch (error) {
+              retryCount++;
+              stepError = error instanceof Error ? error.message : "Unknown error";
+              
+              if (retryCount <= (flowControl.maxRetries || 0)) {
+                // Wait before retry
+                if (flowControl.retryDelayMs) {
+                  await new Promise(resolve => setTimeout(resolve, flowControl.retryDelayMs));
+                }
+              } else {
+                // Max retries reached
+                if (flowControl.continueOnError) {
+                  stepResponse = `[Error after ${retryCount} retries: ${stepError}]`;
+                  if (context.passThrough) {
+                    conversationContext += `${consultant.id}: ${consultant.prompt}\nError: ${stepError}\n\n`;
+                  }
+                } else {
+                  // Fail the entire chain
+                  return {
+                    content: [
+                      {
+                        type: "text",
+                        text: `Sequential chain failed at step ${i + 1} (${consultant.id}): ${stepError}`,
+                      },
+                    ],
+                    isError: true,
+                  };
+                }
+              }
+            }
+          }
+
+          // Record the step
+          const step: ChainStep = {
+            step: i + 1,
+            consultantId: consultant.id,
+            model: consultant.model,
+            prompt: consultant.prompt,
+            response: stepResponse,
+            duration: Date.now() - stepStartTime,
+            error: stepError,
+            retryCount: retryCount
+          };
+          steps.push(step);
+        }
+
+        const totalDuration = Date.now() - startTime;
+        const completedSteps = steps.filter(s => !s.error).length;
+
+        const result: SequentialChainResult = {
+          conversationId,
+          status: completedSteps === consultants.length ? 'completed' : 'partial',
+          completedSteps,
+          totalSteps: consultants.length,
+          duration: totalDuration,
+          steps
+        };
+
+        // Store in memory if requested
+        if (memory.storeConversation) {
+          try {
+            // This would integrate with the remember_consult functionality
+            const memoryKey = memory.memoryKey || `sequential_chain_${conversationId}`;
+            const memoryData = {
+              key: memoryKey,
+              prompt: `Sequential consultation chain: ${consultants.map(c => c.id).join(' → ')}`,
+              response: JSON.stringify(result),
+              model: 'sequential_chain',
+            };
+            
+            // Call remember_consult internally
+            await callToolHandler({
+              name: "remember_consult",
+              arguments: memoryData
+            });
+          } catch (memError) {
+            // Memory storage failed, but don't fail the main operation
+            console.warn("Failed to store conversation in memory:", memError);
+          }
+        }
+
+        // Format the output
+        const formattedSteps = steps.map(step => {
+          const status = step.error ? `❌ Failed${step.retryCount ? ` (${step.retryCount} retries)` : ''}` : '✅ Success';
+          return `**Step ${step.step}: ${step.consultantId}** (${step.model}) ${status}\n` +
+                 `Duration: ${step.duration}ms\n` +
+                 `Prompt: ${step.prompt}\n` +
+                 `Response: ${step.response}${step.error ? `\nError: ${step.error}` : ''}\n`;
+        }).join('\n---\n');
+
+        const summary = `# Sequential Consultation Chain Results\n\n` +
+                       `**Status**: ${result.status}\n` +
+                       `**Completed Steps**: ${completedSteps}/${consultants.length}\n` +
+                       `**Total Duration**: ${totalDuration}ms\n` +
+                       `**Conversation ID**: ${conversationId}\n\n` +
+                       `## Consultation Steps\n\n${formattedSteps}\n\n` +
+                       `## Final Context\n${conversationContext}`;
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: summary,
+            },
+          ],
+        };
+
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error in sequential consultation chain: ${message}`,
+            },
+          ],
+          isError: true,
+        };
       }
     }
 

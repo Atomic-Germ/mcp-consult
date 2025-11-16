@@ -31,8 +31,8 @@ function modelObjIsSafe(m: any): boolean {
   if (!m) return false;
   const name = m.name || "";
   if (looksLikeCloudModelName(name)) return true;
-  // Some Ollama responses include flags like 'installed', 'local', 'downloaded' or 'available'
-  if (m.installed || m.local || m.downloaded || m.available) return true;
+  // Only accept models that are actually installed locally (not just available for download)
+  if (m.installed || m.local || m.downloaded) return true;
   return false;
 }
 

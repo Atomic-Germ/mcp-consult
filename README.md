@@ -6,6 +6,9 @@ An MCP (Model Context Protocol) server that allows consulting with Ollama models
 
 - **consult_ollama**: Send prompts to Ollama models and get responses
 - **list_ollama_models**: List available models on the local Ollama instance
+- **compare_ollama_models**: Run the same prompt against multiple models for comparison
+- **remember_consult**: Store consultation results in memory for future reference
+- **sequential_consultation_chain**: Execute multi-step reasoning chains where each consultant builds on previous responses
 
 ## Installation
 
@@ -97,3 +100,33 @@ CMD ["node", "dist/index.js"]
 
 - Node.js 18+
 - Ollama running locally or accessible via HTTP
+
+## Sequential Consultation Chains
+
+The `sequential_consultation_chain` tool enables complex multi-step reasoning by chaining multiple consultant models. See [sequential_chain_demos.md](./sequential_chain_demos.md) for detailed examples.
+
+### Timeout Configuration
+
+Each consultant in a chain supports a `timeoutMs` parameter:
+
+```json
+{
+  "consultants": [
+    {
+      "id": "analyzer",
+      "model": "deepseek-v3.1:671b-cloud",
+      "prompt": "Analyze this complex codebase...",
+      "timeoutMs": 180000
+    }
+  ]
+}
+```
+
+**Default timeout**: 120 seconds (120000ms)
+
+**Recommended timeouts by task complexity**:
+- Simple analysis: 60-90 seconds
+- Code generation/complex reasoning: 180-300 seconds  
+- Large context processing: 300-600 seconds
+
+**Note**: Breaking up questions to work around timeouts is not recommended as it loses conversation context. Instead, increase the `timeoutMs` for the specific consultant that needs more time.

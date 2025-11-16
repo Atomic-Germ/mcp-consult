@@ -136,22 +136,26 @@ This file demonstrates real-world usage of the sequential consultation chain too
     {
       "id": "skill_assessor",
       "model": "glm-4.6:cloud", 
-      "prompt": "A mid-level Python developer wants to learn Rust. They have 5 years of Python experience, some C++ knowledge, and work primarily on web APIs. Assess their background and identify knowledge gaps for learning Rust effectively."
+      "prompt": "A mid-level Python developer wants to learn Rust. They have 5 years of Python experience, some C++ knowledge, and work primarily on web APIs. Assess their background and identify knowledge gaps for learning Rust effectively.",
+      "timeoutMs": 90000
     },
     {
       "id": "curriculum_designer",
       "model": "deepseek-v3.1:671b-cloud",
-      "prompt": "Based on the skill assessment, design a structured 3-month learning curriculum for Rust. Include topics, sequence, hands-on projects, and milestones."
+      "prompt": "Based on the skill assessment, design a structured 3-month learning curriculum for Rust. Include topics, sequence, hands-on projects, and milestones.",
+      "timeoutMs": 180000
     },
     {
       "id": "resource_curator",
       "model": "qwen3-coder:480b-cloud",
-      "prompt": "For the proposed curriculum, recommend specific learning resources: books, tutorials, practice platforms, open source projects, and communities that align with their Python background."
+      "prompt": "For the proposed curriculum, recommend specific learning resources: books, tutorials, practice platforms, open source projects, and communities that align with their Python background.",
+      "timeoutMs": 120000
     },
     {
       "id": "mentor_advisor",
       "model": "glm-4.6:cloud",
-      "prompt": "Create a detailed action plan with weekly goals, practice exercises, and checkpoints to ensure successful completion of this Rust learning journey."
+      "prompt": "Create a detailed action plan with weekly goals, practice exercises, and checkpoints to ensure successful completion of this Rust learning journey.",
+      "timeoutMs": 150000
     }
   ],
   "context": {
@@ -160,6 +164,8 @@ This file demonstrates real-world usage of the sequential consultation chain too
   }
 }
 ```
+
+**Note**: This example demonstrates custom timeout values for each step. The curriculum designer gets 180 seconds (3 minutes) as it may need to generate comprehensive learning plans.
 
 ## Benefits of Sequential Consultation Chains
 
@@ -186,6 +192,12 @@ This file demonstrates real-world usage of the sequential consultation chain too
 4. **Error Handling**: Set appropriate retry policies based on the criticality of each step.
 
 5. **Memory Storage**: Store important conversations for team learning and pattern recognition.
+
+6. **Timeout Configuration**: For complex tasks requiring longer processing, configure `timeoutMs` per consultant:
+   - Default timeout: 120 seconds (120000ms)
+   - For simple analysis: 60-90 seconds may suffice
+   - For code generation/complex reasoning: 180-300 seconds recommended
+   - For very large context processing: 300-600 seconds may be needed
 
 ## Advanced Usage Patterns
 

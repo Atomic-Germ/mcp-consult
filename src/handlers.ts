@@ -16,8 +16,9 @@ import {
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
 
-// Ensure a reasonable default timeout for Ollama calls
-axios.defaults.timeout = axios.defaults.timeout || 60_000;
+// Default timeout for Ollama calls (2 minutes)
+// Can be overridden per-consultant using the timeoutMs parameter
+axios.defaults.timeout = axios.defaults.timeout || 120_000;
 
 // Helper: determine whether a model name looks like a cloud model
 function looksLikeCloudModelName(n: string | undefined): boolean {
@@ -606,7 +607,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
                 temperature: consultant.temperature,
                 stream: false,
               }, {
-                timeout: consultant.timeoutMs || 60000
+                timeout: consultant.timeoutMs || 120000
               });
 
               stepResponse = response.data.response;

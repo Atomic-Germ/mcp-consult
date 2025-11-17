@@ -150,11 +150,14 @@ export interface DebateResult {
   };
   rounds: DebateRound[];
   analytics: {
-    participantContributions: Record<string, {
-      messageCount: number;
-      averageLength: number;
-      influence: number;
-    }>;
+    participantContributions: Record<
+      string,
+      {
+        messageCount: number;
+        averageLength: number;
+        influence: number;
+      }
+    >;
     evolutionTrends: {
       consensusScore: number[];
     };

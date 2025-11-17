@@ -5,7 +5,7 @@ export function evalCondition(
   try {
     // Provide `memory` and `$` (variables accessor) only
     // Note: this intentionally limits the globals available to the expression.
-    const fn = new Function("memory", "$", `return (${expr});`);
+    const fn = new Function('memory', '$', `return (${expr});`);
     const result = fn(ctx.memory, (k: string) => ctx.variables[k]);
     return Boolean(result);
   } catch (e) {

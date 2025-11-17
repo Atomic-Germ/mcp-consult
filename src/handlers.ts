@@ -1,20 +1,20 @@
-import axios from "axios";
-import fs from "fs/promises";
-import path from "path";
-import os from "os";
+import axios from 'axios';
+import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
 
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
-import { 
-  SequentialChainParams, 
-  SequentialChainResult, 
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
+import {
+  SequentialChainParams,
+  SequentialChainResult,
   ConversationState,
   ChainStep,
-  ConversationMessage 
-} from "./conversationTypes.js";
+  ConversationMessage,
+} from './conversationTypes.js';
 
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 
 // Default timeout for Ollama calls (2 minutes)
 // Can be overridden per-consultant using the timeoutMs parameter
@@ -30,7 +30,7 @@ function looksLikeCloudModelName(n: string | undefined): boolean {
 // Helper: given a model object from /api/tags, decide if it's safe to use
 function modelObjIsSafe(m: any): boolean {
   if (!m) return false;
-  const name = m.name || "";
+  const name = m.name || '';
   if (looksLikeCloudModelName(name)) return true;
   // Only accept models that are actually installed locally (not just available for download)
   if (m.installed || m.local || m.downloaded) return true;
@@ -62,98 +62,100 @@ export function listTools() {
   return {
     tools: [
       {
-        name: "consult_ollama",
+        name: 'consult_ollama',
         description:
-          "Consult an Ollama model with a prompt and get its response for reasoning from another viewpoint.",
+          'Consult an Ollama model with a prompt and get its response for reasoning from another viewpoint.',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
-            model: { type: "string" },
-            prompt: { type: "string" },
-            system_prompt: { type: "string" },
+            model: { type: 'string' },
+            prompt: { type: 'string' },
+            system_prompt: { type: 'string' },
           },
-          required: ["model", "prompt"],
+          required: ['model', 'prompt'],
         },
       },
       {
-        name: "list_ollama_models",
-        description: "List all available Ollama models on the local instance.",
-        inputSchema: { type: "object", properties: {} },
+        name: 'list_ollama_models',
+        description: 'List all available Ollama models on the local instance.',
+        inputSchema: { type: 'object', properties: {} },
       },
       {
-        name: "compare_ollama_models",
+        name: 'compare_ollama_models',
         description:
-          "Run the same prompt against multiple Ollama models and return their outputs side-by-side for comparison.",
+          'Run the same prompt against multiple Ollama models and return their outputs side-by-side for comparison.',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
-            models: { type: "array", items: { type: "string" } },
-            prompt: { type: "string" },
-            system_prompt: { type: "string" },
+            models: { type: 'array', items: { type: 'string' } },
+            prompt: { type: 'string' },
+            system_prompt: { type: 'string' },
           },
-          required: ["prompt"],
+          required: ['prompt'],
         },
       },
       {
-        name: "remember_consult",
-        description: "Store the result of a consult into a local memory store (or configured memory service).",
+        name: 'remember_consult',
+        description:
+          'Store the result of a consult into a local memory store (or configured memory service).',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
-            key: { type: "string" },
-            prompt: { type: "string" },
-            model: { type: "string" },
-            response: { type: "string" },
+            key: { type: 'string' },
+            prompt: { type: 'string' },
+            model: { type: 'string' },
+            response: { type: 'string' },
           },
-          required: ["prompt"],
+          required: ['prompt'],
         },
       },
       {
-        name: "sequential_consultation_chain",
-        description: "Run a sequence of consultations where each consultant builds on previous responses, enabling complex multi-step reasoning.",
+        name: 'sequential_consultation_chain',
+        description:
+          'Run a sequence of consultations where each consultant builds on previous responses, enabling complex multi-step reasoning.',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
             consultants: {
-              type: "array",
+              type: 'array',
               items: {
-                type: "object",
+                type: 'object',
                 properties: {
-                  id: { type: "string" },
-                  model: { type: "string" },
-                  prompt: { type: "string" },
-                  systemPrompt: { type: "string" },
-                  temperature: { type: "number" },
-                  timeoutMs: { type: "number" }
+                  id: { type: 'string' },
+                  model: { type: 'string' },
+                  prompt: { type: 'string' },
+                  systemPrompt: { type: 'string' },
+                  temperature: { type: 'number' },
+                  timeoutMs: { type: 'number' },
                 },
-                required: ["id", "model", "prompt"]
-              }
+                required: ['id', 'model', 'prompt'],
+              },
             },
             context: {
-              type: "object",
+              type: 'object',
               properties: {
-                systemPrompt: { type: "string" },
-                variables: { type: "object" },
-                passThrough: { type: "boolean" }
-              }
+                systemPrompt: { type: 'string' },
+                variables: { type: 'object' },
+                passThrough: { type: 'boolean' },
+              },
             },
             flowControl: {
-              type: "object",
+              type: 'object',
               properties: {
-                continueOnError: { type: "boolean" },
-                maxRetries: { type: "number" },
-                retryDelayMs: { type: "number" }
-              }
+                continueOnError: { type: 'boolean' },
+                maxRetries: { type: 'number' },
+                retryDelayMs: { type: 'number' },
+              },
             },
             memory: {
-              type: "object",
+              type: 'object',
               properties: {
-                storeConversation: { type: "boolean" },
-                memoryKey: { type: "string" }
-              }
-            }
+                storeConversation: { type: 'boolean' },
+                memoryKey: { type: 'string' },
+              },
+            },
           },
-          required: ["consultants"]
+          required: ['consultants'],
         },
       },
     ],
@@ -166,7 +168,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
   const args = params.arguments || {};
 
   switch (name) {
-    case "consult_ollama": {
+    case 'consult_ollama': {
       const model = args?.model as string;
       const prompt = args?.prompt as string;
       const system_prompt = args?.system_prompt as string | undefined;
@@ -180,16 +182,20 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           try {
             const resp = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
             const raw = resp.data.models || [];
-            suggestions = raw.filter((m: any) => modelObjIsSafe(m)).map((m: any) => m.name).slice(0, 5);
+            suggestions = raw
+              .filter((m: any) => modelObjIsSafe(m))
+              .map((m: any) => m.name)
+              .slice(0, 5);
           } catch (e) {
             // ignore
           }
 
-          const suggestText = suggestions.length > 0 ? ` Available (cloud/installed): ${suggestions.join(", ")}` : "";
+          const suggestText =
+            suggestions.length > 0 ? ` Available (cloud/installed): ${suggestions.join(', ')}` : '';
           return {
             content: [
               {
-                type: "text",
+                type: 'text',
                 text: `Model '${model}' is not available locally and is not a recognized cloud model. Use a model name that ends with ':cloud' or '-cloud', or install the model locally.${suggestText}`,
               },
             ],
@@ -207,17 +213,17 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: response.data.response,
             },
           ],
         };
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown error";
+        const message = error instanceof Error ? error.message : 'Unknown error';
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error consulting Ollama: ${message}`,
             },
           ],
@@ -226,7 +232,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
       }
     }
 
-    case "list_ollama_models": {
+    case 'list_ollama_models': {
       try {
         const response = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
         const rawModels = response.data.models || [];
@@ -237,26 +243,31 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           modelsList = safe;
         } else {
           // Fallback: prefer cloud-like names if present, otherwise return raw list
-          const cloudOnly = rawModels.filter((m: any) => m && looksLikeCloudModelName(m.name)).map((m: any) => m.name);
+          const cloudOnly = rawModels
+            .filter((m: any) => m && looksLikeCloudModelName(m.name))
+            .map((m: any) => m.name);
           modelsList = cloudOnly.length > 0 ? cloudOnly : rawModels.map((m: any) => m.name);
         }
 
-        const note = safe.length > 0 ? " (cloud models and installed locals)" : " (no installed locals detected; showing cloud-like or raw models)";
+        const note =
+          safe.length > 0
+            ? ' (cloud models and installed locals)'
+            : ' (no installed locals detected; showing cloud-like or raw models)';
 
         return {
           content: [
             {
-              type: "text",
-              text: `Available models${note}: ${modelsList.join(", ")}`,
+              type: 'text',
+              text: `Available models${note}: ${modelsList.join(', ')}`,
             },
           ],
         };
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown error";
+        const message = error instanceof Error ? error.message : 'Unknown error';
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error listing models: ${message}`,
             },
           ],
@@ -265,7 +276,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
       }
     }
 
-    case "compare_ollama_models": {
+    case 'compare_ollama_models': {
       const modelsArg = args?.models as string[] | undefined;
       const prompt = args?.prompt as string;
       const system_prompt = args?.system_prompt as string | undefined;
@@ -274,8 +285,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         return {
           content: [
             {
-              type: "text",
-              text: "Missing required argument: prompt",
+              type: 'text',
+              text: 'Missing required argument: prompt',
             },
           ],
           isError: true,
@@ -299,8 +310,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           return {
             content: [
               {
-                type: "text",
-                text: `None of the requested models are available (cloud or installed): ${bad.join(", ")}. Try using -cloud models or install the models locally.`,
+                type: 'text',
+                text: `None of the requested models are available (cloud or installed): ${bad.join(', ')}. Try using -cloud models or install the models locally.`,
               },
             ],
             isError: true,
@@ -316,10 +327,16 @@ export async function callToolHandler(params: { name: string; arguments?: any })
       } else {
         try {
           const resp = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
-          const candidates = (resp.data.models || []).filter((m: any) => modelObjIsSafe(m)).map((m: any) => m.name).slice(0, 2);
-          modelsToUse = candidates.length > 0 ? candidates : (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
+          const candidates = (resp.data.models || [])
+            .filter((m: any) => modelObjIsSafe(m))
+            .map((m: any) => m.name)
+            .slice(0, 2);
+          modelsToUse =
+            candidates.length > 0
+              ? candidates
+              : (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
         } catch (err) {
-          modelsToUse = ["llama2"];
+          modelsToUse = ['llama2'];
         }
       }
 
@@ -332,17 +349,17 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             system: system_prompt,
             stream: false,
           });
-          contents.push({ type: "text", text: `Model ${m}:\n${gen.data.response}` });
+          contents.push({ type: 'text', text: `Model ${m}:\n${gen.data.response}` });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
-          contents.push({ type: "text", text: `Model ${m} failed: ${message}` });
+          contents.push({ type: 'text', text: `Model ${m} failed: ${message}` });
         }
       }
 
       return { content: contents };
     }
 
-    case "remember_consult": {
+    case 'remember_consult': {
       const key = args?.key as string | undefined;
       const prompt = args?.prompt as string | undefined;
       const model = args?.model as string | undefined;
@@ -352,8 +369,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         return {
           content: [
             {
-              type: "text",
-              text: "Missing required argument: prompt",
+              type: 'text',
+              text: 'Missing required argument: prompt',
             },
           ],
           isError: true,
@@ -365,7 +382,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         if (!model) {
           return {
             content: [
-              { type: "text", text: "Missing 'response' and no 'model' provided to generate it." },
+              { type: 'text', text: "Missing 'response' and no 'model' provided to generate it." },
             ],
             isError: true,
           };
@@ -381,7 +398,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           return {
-            content: [{ type: "text", text: `Failed to generate response: ${message}` }],
+            content: [{ type: 'text', text: `Failed to generate response: ${message}` }],
             isError: true,
           };
         }
@@ -408,7 +425,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             tryServers.push(parsed);
           } catch (e) {
             const [cmd, ...argList] = envCfg.split(/\s+/);
-            tryServers.push({ type: "stdio", command: cmd, args: argList });
+            tryServers.push({ type: 'stdio', command: cmd, args: argList });
           }
         }
       } catch (e) {
@@ -416,15 +433,17 @@ export async function callToolHandler(params: { name: string; arguments?: any })
       }
 
       try {
-        const vscodeMcpPath = process.env.VSCODE_MCP_JSON || path.join(os.homedir(), "Library", "Application Support", "Code", "User", "mcp.json");
-        const raw = await fs.readFile(vscodeMcpPath, "utf-8").catch(() => "");
+        const vscodeMcpPath =
+          process.env.VSCODE_MCP_JSON ||
+          path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'mcp.json');
+        const raw = await fs.readFile(vscodeMcpPath, 'utf-8').catch(() => '');
         if (raw) {
           try {
             const cfg = JSON.parse(raw);
             const servers = cfg.servers || {};
             const keys = Object.keys(servers || {});
-            const rememberKey = keys.find((k) => k.toLowerCase().includes("remember"));
-            const memoryKey = keys.find((k) => k.toLowerCase().includes("memory"));
+            const rememberKey = keys.find((k) => k.toLowerCase().includes('remember'));
+            const memoryKey = keys.find((k) => k.toLowerCase().includes('memory'));
             if (rememberKey) tryServers.push(servers[rememberKey]);
             if (memoryKey) tryServers.push(servers[memoryKey]);
           } catch (e) {
@@ -438,27 +457,42 @@ export async function callToolHandler(params: { name: string; arguments?: any })
       if (process.env.MEMORY_MCP_CMD) {
         const cmd = process.env.MEMORY_MCP_CMD;
         const argsList = process.env.MEMORY_MCP_ARGS ? JSON.parse(process.env.MEMORY_MCP_ARGS) : [];
-        tryServers.push({ type: "stdio", command: cmd, args: argsList });
+        tryServers.push({ type: 'stdio', command: cmd, args: argsList });
       }
 
       // Helper to attempt calling a memory MCP server via stdio transport
       async function tryCallMemoryServer(serverCfg: any): Promise<any> {
-        if (!serverCfg || serverCfg.type !== "stdio" || !serverCfg.command) throw new Error("unsupported server cfg");
+        if (!serverCfg || serverCfg.type !== 'stdio' || !serverCfg.command)
+          throw new Error('unsupported server cfg');
 
-        const transport = new StdioClientTransport({ command: serverCfg.command, args: serverCfg.args || [] });
-        const client = new Client({ name: "mcp-memory-client", version: "1.0.0" });
+        const transport = new StdioClientTransport({
+          command: serverCfg.command,
+          args: serverCfg.args || [],
+        });
+        const client = new Client({ name: 'mcp-memory-client', version: '1.0.0' });
 
         // limit connection time
         const conn = client.connect(transport);
         const timeoutMs = 10_000;
         await Promise.race([
           conn,
-          new Promise((_, rej) => setTimeout(() => rej(new Error("connect timeout")), timeoutMs)),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('connect timeout')), timeoutMs)),
         ]);
 
         const toolsRes = await client.listTools();
         const tools = toolsRes.tools || [];
-        const patterns = ["remember", "store", "add", "write", "create", "save", "observe", "put", "set", "append"];
+        const patterns = [
+          'remember',
+          'store',
+          'add',
+          'write',
+          'create',
+          'save',
+          'observe',
+          'put',
+          'set',
+          'append',
+        ];
         let chosen: any = null;
         for (const p of patterns) {
           const found = tools.find((t: any) => t.name && t.name.toLowerCase().includes(p));
@@ -469,29 +503,35 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         }
 
         if (!chosen && tools.length > 0) {
-          chosen = tools.find((t: any) => t.inputSchema && t.inputSchema.type === "object") || tools[0];
+          chosen =
+            tools.find((t: any) => t.inputSchema && t.inputSchema.type === 'object') || tools[0];
         }
 
         if (!chosen) {
           await client.close();
-          throw new Error("no suitable tool on memory server");
+          throw new Error('no suitable tool on memory server');
         }
 
         const inputSchema = chosen.inputSchema || {};
         const props = inputSchema.properties || {};
         const toolArgs: any = {};
-        if (props["response"] !== undefined || props["text"] !== undefined || props["value"] !== undefined || props["content"] !== undefined) {
-          if (props["response"] !== undefined) toolArgs.response = payload.response;
-          if (props["text"] !== undefined) toolArgs.text = payload.response;
-          if (props["value"] !== undefined) toolArgs.value = payload.response;
-          if (props["content"] !== undefined) toolArgs.content = payload.response;
+        if (
+          props['response'] !== undefined ||
+          props['text'] !== undefined ||
+          props['value'] !== undefined ||
+          props['content'] !== undefined
+        ) {
+          if (props['response'] !== undefined) toolArgs.response = payload.response;
+          if (props['text'] !== undefined) toolArgs.text = payload.response;
+          if (props['value'] !== undefined) toolArgs.value = payload.response;
+          if (props['content'] !== undefined) toolArgs.content = payload.response;
         }
-        if (props["resource"] !== undefined || props["uri"] !== undefined) {
+        if (props['resource'] !== undefined || props['uri'] !== undefined) {
           toolArgs.resource = payload.resource;
         }
-        if (props["key"] !== undefined) toolArgs.key = payload.key;
-        if (props["prompt"] !== undefined) toolArgs.prompt = payload.prompt;
-        if (props["model"] !== undefined) toolArgs.model = payload.model;
+        if (props['key'] !== undefined) toolArgs.key = payload.key;
+        if (props['prompt'] !== undefined) toolArgs.prompt = payload.prompt;
+        if (props['model'] !== undefined) toolArgs.model = payload.model;
         if (Object.keys(toolArgs).length === 0) {
           toolArgs.key = payload.key;
           toolArgs.prompt = payload.prompt;
@@ -499,7 +539,9 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           toolArgs.resource = payload.resource;
         }
 
-        const callRes = await client.callTool({ name: chosen.name, arguments: toolArgs }, CallToolResultSchema).catch((e) => ({ isError: true, error: e }));
+        const callRes = await client
+          .callTool({ name: chosen.name, arguments: toolArgs }, CallToolResultSchema)
+          .catch((e) => ({ isError: true, error: e }));
         await client.close();
         return callRes;
       }
@@ -517,22 +559,28 @@ export async function callToolHandler(params: { name: string; arguments?: any })
       }
 
       // Fallback: persist to a simple local memory directory
-      const memoryDir = process.env.MEMORY_DIR || path.join("/tmp", "mcp-consult-memory");
+      const memoryDir = process.env.MEMORY_DIR || path.join('/tmp', 'mcp-consult-memory');
       try {
         await fs.mkdir(memoryDir, { recursive: true });
         const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         const filePath = path.join(memoryDir, `observation-${id}.json`);
-        const payloadToWrite = { key: payload.key || null, prompt: payload.prompt, model: payload.model || null, response: payload.response, _meta: { createdAt: new Date().toISOString() } };
-        await fs.writeFile(filePath, JSON.stringify(payloadToWrite, null, 2), "utf-8");
+        const payloadToWrite = {
+          key: payload.key || null,
+          prompt: payload.prompt,
+          model: payload.model || null,
+          response: payload.response,
+          _meta: { createdAt: new Date().toISOString() },
+        };
+        await fs.writeFile(filePath, JSON.stringify(payloadToWrite, null, 2), 'utf-8');
 
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Saved consult to ${filePath}`,
             },
             {
-              type: "resource",
+              type: 'resource',
               resource: {
                 uri: `file://${filePath}`,
                 text: payload.response,
@@ -542,11 +590,14 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        return { content: [{ type: "text", text: `Failed to save memory: ${message}` }], isError: true };
+        return {
+          content: [{ type: 'text', text: `Failed to save memory: ${message}` }],
+          isError: true,
+        };
       }
     }
 
-    case "sequential_consultation_chain": {
+    case 'sequential_consultation_chain': {
       const params = args as SequentialChainParams;
       const consultants = params.consultants || [];
       const context = params.context || {};
@@ -557,8 +608,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         return {
           content: [
             {
-              type: "text",
-              text: "Error: No consultants provided for sequential chain",
+              type: 'text',
+              text: 'Error: No consultants provided for sequential chain',
             },
           ],
           isError: true,
@@ -570,7 +621,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         const startTime = Date.now();
         const steps: ChainStep[] = [];
         const messages: ConversationMessage[] = [];
-        let conversationContext = "";
+        let conversationContext = '';
 
         // Add system prompt if provided
         if (context.systemPrompt) {
@@ -582,7 +633,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           const stepStartTime = Date.now();
           let retryCount = 0;
           let stepSuccess = false;
-          let stepResponse = "";
+          let stepResponse = '';
           let stepError: string | undefined;
 
           // Build prompt with conversation context if passThrough is enabled
@@ -600,15 +651,19 @@ export async function callToolHandler(params: { name: string; arguments?: any })
               }
 
               // Make the consultation call
-              const response = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
-                model: consultant.model,
-                prompt: finalPrompt,
-                system: consultant.systemPrompt || context.systemPrompt,
-                temperature: consultant.temperature,
-                stream: false,
-              }, {
-                timeout: consultant.timeoutMs || 120000
-              });
+              const response = await axios.post(
+                `${OLLAMA_BASE_URL}/api/generate`,
+                {
+                  model: consultant.model,
+                  prompt: finalPrompt,
+                  system: consultant.systemPrompt || context.systemPrompt,
+                  temperature: consultant.temperature,
+                  stream: false,
+                },
+                {
+                  timeout: consultant.timeoutMs || 120000,
+                }
+              );
 
               stepResponse = response.data.response;
               stepSuccess = true;
@@ -627,19 +682,18 @@ export async function callToolHandler(params: { name: string; arguments?: any })
                 metadata: {
                   model: consultant.model,
                   temperature: consultant.temperature,
-                  duration: Date.now() - stepStartTime
-                }
+                  duration: Date.now() - stepStartTime,
+                },
               };
               messages.push(message);
-
             } catch (error) {
               retryCount++;
-              stepError = error instanceof Error ? error.message : "Unknown error";
-              
+              stepError = error instanceof Error ? error.message : 'Unknown error';
+
               if (retryCount <= (flowControl.maxRetries || 0)) {
                 // Wait before retry
                 if (flowControl.retryDelayMs) {
-                  await new Promise(resolve => setTimeout(resolve, flowControl.retryDelayMs));
+                  await new Promise((resolve) => setTimeout(resolve, flowControl.retryDelayMs));
                 }
               } else {
                 // Max retries reached
@@ -653,7 +707,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
                   return {
                     content: [
                       {
-                        type: "text",
+                        type: 'text',
                         text: `Sequential chain failed at step ${i + 1} (${consultant.id}): ${stepError}`,
                       },
                     ],
@@ -673,13 +727,13 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             response: stepResponse,
             duration: Date.now() - stepStartTime,
             error: stepError,
-            retryCount: retryCount
+            retryCount: retryCount,
           };
           steps.push(step);
         }
 
         const totalDuration = Date.now() - startTime;
-        const completedSteps = steps.filter(s => !s.error).length;
+        const completedSteps = steps.filter((s) => !s.error).length;
 
         const result: SequentialChainResult = {
           conversationId,
@@ -687,7 +741,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           completedSteps,
           totalSteps: consultants.length,
           duration: totalDuration,
-          steps
+          steps,
         };
 
         // Store in memory if requested
@@ -697,54 +751,60 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             const memoryKey = memory.memoryKey || `sequential_chain_${conversationId}`;
             const memoryData = {
               key: memoryKey,
-              prompt: `Sequential consultation chain: ${consultants.map(c => c.id).join(' → ')}`,
+              prompt: `Sequential consultation chain: ${consultants.map((c) => c.id).join(' → ')}`,
               response: JSON.stringify(result),
               model: 'sequential_chain',
             };
-            
+
             // Call remember_consult internally
             await callToolHandler({
-              name: "remember_consult",
-              arguments: memoryData
+              name: 'remember_consult',
+              arguments: memoryData,
             });
           } catch (memError) {
             // Memory storage failed, but don't fail the main operation
-            console.warn("Failed to store conversation in memory:", memError);
+            console.warn('Failed to store conversation in memory:', memError);
           }
         }
 
         // Format the output
-        const formattedSteps = steps.map(step => {
-          const status = step.error ? `❌ Failed${step.retryCount ? ` (${step.retryCount} retries)` : ''}` : '✅ Success';
-          return `**Step ${step.step}: ${step.consultantId}** (${step.model}) ${status}\n` +
-                 `Duration: ${step.duration}ms\n` +
-                 `Prompt: ${step.prompt}\n` +
-                 `Response: ${step.response}${step.error ? `\nError: ${step.error}` : ''}\n`;
-        }).join('\n---\n');
+        const formattedSteps = steps
+          .map((step) => {
+            const status = step.error
+              ? `❌ Failed${step.retryCount ? ` (${step.retryCount} retries)` : ''}`
+              : '✅ Success';
+            return (
+              `**Step ${step.step}: ${step.consultantId}** (${step.model}) ${status}\n` +
+              `Duration: ${step.duration}ms\n` +
+              `Prompt: ${step.prompt}\n` +
+              `Response: ${step.response}${step.error ? `\nError: ${step.error}` : ''}\n`
+            );
+          })
+          .join('\n---\n');
 
-        const summary = `# Sequential Consultation Chain Results\n\n` +
-                       `**Status**: ${result.status}\n` +
-                       `**Completed Steps**: ${completedSteps}/${consultants.length}\n` +
-                       `**Total Duration**: ${totalDuration}ms\n` +
-                       `**Conversation ID**: ${conversationId}\n\n` +
-                       `## Consultation Steps\n\n${formattedSteps}\n\n` +
-                       `## Final Context\n${conversationContext}`;
+        const summary =
+          `# Sequential Consultation Chain Results\n\n` +
+          `**Status**: ${result.status}\n` +
+          `**Completed Steps**: ${completedSteps}/${consultants.length}\n` +
+          `**Total Duration**: ${totalDuration}ms\n` +
+          `**Conversation ID**: ${conversationId}\n\n` +
+          `## Consultation Steps\n\n${formattedSteps}\n\n` +
+          `## Final Context\n${conversationContext}`;
 
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: summary,
             },
           ],
         };
-
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown error";
+        const message = error instanceof Error ? error.message : 'Unknown error';
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error in sequential consultation chain: ${message}`,
             },
           ],

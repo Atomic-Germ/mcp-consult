@@ -1,30 +1,30 @@
-import { registerTool } from "./invoke";
-import { listTools, callToolHandler } from "./handlers";
-import * as logger from "./logger";
-import { getAllowedTools } from "./config";
+import { registerTool } from './invoke';
+import { listTools, callToolHandler } from './handlers';
+import * as logger from './logger';
+import { getAllowedTools } from './config';
 
 function minimalForSchema(propSchema: any): any {
-  if (!propSchema) return "test";
+  if (!propSchema) return 'test';
   const t = propSchema.type;
-  if (!t) return "test";
+  if (!t) return 'test';
   if (Array.isArray(t)) {
-    if (t.includes("string")) return "test";
-    if (t.includes("object")) return {};
+    if (t.includes('string')) return 'test';
+    if (t.includes('object')) return {};
     return null;
   }
   switch (t) {
-    case "string":
-      return "test";
-    case "number":
+    case 'string':
+      return 'test';
+    case 'number':
       return 0;
-    case "boolean":
+    case 'boolean':
       return true;
-    case "array":
+    case 'array':
       return [];
-    case "object":
+    case 'object':
       return {};
     default:
-      return "test";
+      return 'test';
   }
 }
 
@@ -40,30 +40,45 @@ function mapArgsFromSchema(name: string, schema: any, invokeArgs: any): any {
     }
 
     // Common mappings
-    if (["prompt", "text", "message", "query"].includes(propName)) {
+    if (['prompt', 'text', 'message', 'query'].includes(propName)) {
       if (invokeArgs && invokeArgs.prompt) callArgs[propName] = invokeArgs.prompt;
       continue;
     }
 
-    if (["response", "value", "content"].includes(propName)) {
+    if (['response', 'value', 'content'].includes(propName)) {
       if (invokeArgs && invokeArgs.response) callArgs[propName] = invokeArgs.response;
       else if (invokeArgs && invokeArgs.result) callArgs[propName] = invokeArgs.result;
       else if (invokeArgs && invokeArgs.prompt) callArgs[propName] = invokeArgs.prompt;
       continue;
     }
 
-    if (propName === "resource") {
-      callArgs.resource = invokeArgs && invokeArgs.resource ? invokeArgs.resource : { uri: `mcp-consult://runtime/${name}`, text: invokeArgs && invokeArgs.prompt ? invokeArgs.prompt : "" };
+    if (propName === 'resource') {
+      callArgs.resource =
+        invokeArgs && invokeArgs.resource
+          ? invokeArgs.resource
+          : {
+              uri: `mcp-consult://runtime/${name}`,
+              text: invokeArgs && invokeArgs.prompt ? invokeArgs.prompt : '',
+            };
       continue;
     }
 
-    if (propName === "key") {
-      callArgs.key = invokeArgs && invokeArgs.key ? invokeArgs.key : invokeArgs && invokeArgs.prompt ? invokeArgs.prompt : undefined;
+    if (propName === 'key') {
+      callArgs.key =
+        invokeArgs && invokeArgs.key
+          ? invokeArgs.key
+          : invokeArgs && invokeArgs.prompt
+            ? invokeArgs.prompt
+            : undefined;
       continue;
     }
 
     // fallback: check memory or variables
-    if (invokeArgs && invokeArgs.memory && Object.prototype.hasOwnProperty.call(invokeArgs.memory, propName)) {
+    if (
+      invokeArgs &&
+      invokeArgs.memory &&
+      Object.prototype.hasOwnProperty.call(invokeArgs.memory, propName)
+    ) {
       callArgs[propName] = invokeArgs.memory[propName];
       continue;
     }
@@ -79,7 +94,10 @@ function mapArgsFromSchema(name: string, schema: any, invokeArgs: any): any {
  * Register MCP tools exposed by local handlers into the runtime tool registry.
  * If `healthCheck` is true, attempts a minimal invocation of each tool using required schema keys.
  */
-export async function registerMcpTools(healthCheck = false, allowedTools?: string[]): Promise<string[]> {
+export async function registerMcpTools(
+  healthCheck = false,
+  allowedTools?: string[]
+): Promise<string[]> {
   const res = listTools();
   const tools = res.tools || [];
   const names: string[] = [];
@@ -95,8 +113,8 @@ export async function registerMcpTools(healthCheck = false, allowedTools?: strin
 
   for (const t of tools) {
     const name = t.name;
-    if (!name || typeof name !== "string") {
-      logger.warn("Skipping tool with invalid name", name);
+    if (!name || typeof name !== 'string') {
+      logger.warn('Skipping tool with invalid name', name);
       continue;
     }
 
@@ -107,7 +125,7 @@ export async function registerMcpTools(healthCheck = false, allowedTools?: strin
     }
 
     if (registered.has(name)) {
-      logger.warn("Duplicate tool registration skipped:", name);
+      logger.warn('Duplicate tool registration skipped:', name);
       continue;
     }
 
@@ -115,7 +133,7 @@ export async function registerMcpTools(healthCheck = false, allowedTools?: strin
 
     // Basic descriptor validation
     try {
-      if (inputSchema && typeof inputSchema === "object") {
+      if (inputSchema && typeof inputSchema === 'object') {
         // ok
       } else if (inputSchema && inputSchema !== undefined) {
         logger.warn(`Tool ${name} has non-object inputSchema; skipping`);
@@ -129,7 +147,10 @@ export async function registerMcpTools(healthCheck = false, allowedTools?: strin
           const resp = await callToolHandler({ name, arguments: callArgs });
           return resp;
         } catch (e) {
-          logger.error(`Tool invocation failed: ${name}`, e instanceof Error ? e.message : String(e));
+          logger.error(
+            `Tool invocation failed: ${name}`,
+            e instanceof Error ? e.message : String(e)
+          );
           // Standardized error object
           return { isError: true, error: e instanceof Error ? e.message : String(e) };
         }

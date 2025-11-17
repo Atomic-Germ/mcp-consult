@@ -1,4 +1,4 @@
-import { MemoryData } from "./types";
+import { MemoryData } from './types';
 
 export interface MemoryStore {
   load(flowId: string): Promise<MemoryData>;

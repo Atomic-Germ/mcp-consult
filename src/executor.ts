@@ -1,8 +1,8 @@
-import { Flow, Step, StepResult, ExecutionContext } from "./types";
-import { MemoryStore } from "./memory";
-import { invokeOllama, invokeTool, renderTemplate } from "./invoke";
-import { evalCondition } from "./condition";
-import * as logger from "./logger";
+import { Flow, Step, StepResult, ExecutionContext } from './types';
+import { MemoryStore } from './memory';
+import { invokeOllama, invokeTool, renderTemplate } from './invoke';
+import { evalCondition } from './condition';
+import * as logger from './logger';
 
 function sleep(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
@@ -11,7 +11,11 @@ function sleep(ms: number) {
 export class FlowExecutor {
   constructor(private memoryStore: MemoryStore) {}
 
-  async run(flow: Flow, variables?: Record<string, any>, options?: { maxConcurrency?: number }): Promise<ExecutionContext> {
+  async run(
+    flow: Flow,
+    variables?: Record<string, any>,
+    options?: { maxConcurrency?: number }
+  ): Promise<ExecutionContext> {
     const memory = await this.memoryStore.load(flow.id);
 
     const ctx: ExecutionContext = {
@@ -64,7 +68,10 @@ export class FlowExecutor {
         }
       }
 
-      const prompt = renderTemplate(step.prompt ?? "", { memory: ctx.memory, variables: ctx.variables });
+      const prompt = renderTemplate(step.prompt ?? '', {
+        memory: ctx.memory,
+        variables: ctx.variables,
+      });
 
       const result = await this.invokeWithRetry(step, prompt, ctx);
       ctx.stepResults[stepId] = result;
@@ -104,7 +111,11 @@ export class FlowExecutor {
     return ctx;
   }
 
-  private async invokeWithRetry(step: Step, prompt: string, ctx: ExecutionContext): Promise<StepResult> {
+  private async invokeWithRetry(
+    step: Step,
+    prompt: string,
+    ctx: ExecutionContext
+  ): Promise<StepResult> {
     const maxRetries = step.retries ?? 0;
     let attempt = 0;
     let backoff = step.backoffMs ?? 500;
@@ -115,9 +126,13 @@ export class FlowExecutor {
         if (step.model) {
           output = await invokeOllama(step.model, prompt, step.system_prompt);
         } else if (step.tool) {
-          output = await invokeTool(step.tool, { prompt, memory: ctx.memory, variables: ctx.variables }, { timeoutMs: step.timeoutMs });
+          output = await invokeTool(
+            step.tool,
+            { prompt, memory: ctx.memory, variables: ctx.variables },
+            { timeoutMs: step.timeoutMs }
+          );
         } else {
-          throw new Error("Step missing model or tool");
+          throw new Error('Step missing model or tool');
         }
 
         return { stepId: step.id!, success: true, output, attempts: attempt + 1 };
@@ -133,7 +148,7 @@ export class FlowExecutor {
       }
     }
 
-    return { stepId: step.id!, success: false, error: "Unexpected error", attempts: 0 };
+    return { stepId: step.id!, success: false, error: 'Unexpected error', attempts: 0 };
   }
 
   private async runDAG(flow: Flow, ctx: ExecutionContext, maxConcurrency?: number): Promise<void> {
@@ -175,7 +190,7 @@ export class FlowExecutor {
         if ((indegCopy.get(c) || 0) === 0) q.push(c);
       }
     }
-    if (cnt !== total) throw new Error("Cycle detected in flow dependencies");
+    if (cnt !== total) throw new Error('Cycle detected in flow dependencies');
 
     // scheduling
     const ready: string[] = [];
@@ -185,7 +200,10 @@ export class FlowExecutor {
 
     let processed = 0;
 
-    const runTaskFnsWithLimit = async (taskFns: Array<() => Promise<{ id: string; result: StepResult }>>, limit: number) => {
+    const runTaskFnsWithLimit = async (
+      taskFns: Array<() => Promise<{ id: string; result: StepResult }>>,
+      limit: number
+    ) => {
       const results: Array<{ id: string; result: StepResult }> = [];
       let idx = 0;
       let active = 0;
@@ -203,7 +221,14 @@ export class FlowExecutor {
               })
               .catch((err) => {
                 // convert to StepResult error
-                results.push({ id: "unknown", result: { stepId: "unknown", success: false, error: err instanceof Error ? err.message : String(err) } as StepResult });
+                results.push({
+                  id: 'unknown',
+                  result: {
+                    stepId: 'unknown',
+                    success: false,
+                    error: err instanceof Error ? err.message : String(err),
+                  } as StepResult,
+                });
               })
               .finally(() => {
                 active--;
@@ -217,44 +242,58 @@ export class FlowExecutor {
     };
 
     while (processed < total) {
-      if (ready.length === 0) throw new Error("No ready nodes available but flow not complete (cycle?)");
+      if (ready.length === 0)
+        throw new Error('No ready nodes available but flow not complete (cycle?)');
 
       const currentLayer = ready.splice(0, ready.length);
-      const taskFns: Array<() => Promise<{ id: string; result: StepResult }>> = currentLayer.map((sid) => {
-        return async () => {
-          const step = idToStep.get(sid)!;
-          // evaluate condition
-          if (step.condition) {
-            try {
-              const ok = evalCondition(step.condition, { memory: ctx.memory, variables: ctx.variables });
-              if (!ok) {
-                const skippedRes: StepResult = { stepId: sid, success: true, skipped: true };
-                ctx.stepResults[sid] = skippedRes;
-                return { id: sid, result: skippedRes };
+      const taskFns: Array<() => Promise<{ id: string; result: StepResult }>> = currentLayer.map(
+        (sid) => {
+          return async () => {
+            const step = idToStep.get(sid)!;
+            // evaluate condition
+            if (step.condition) {
+              try {
+                const ok = evalCondition(step.condition, {
+                  memory: ctx.memory,
+                  variables: ctx.variables,
+                });
+                if (!ok) {
+                  const skippedRes: StepResult = { stepId: sid, success: true, skipped: true };
+                  ctx.stepResults[sid] = skippedRes;
+                  return { id: sid, result: skippedRes };
+                }
+              } catch (e) {
+                const errRes: StepResult = {
+                  stepId: sid,
+                  success: false,
+                  error: (e as Error).message,
+                };
+                ctx.stepResults[sid] = errRes;
+                return { id: sid, result: errRes };
               }
-            } catch (e) {
-              const errRes: StepResult = { stepId: sid, success: false, error: (e as Error).message };
-              ctx.stepResults[sid] = errRes;
-              return { id: sid, result: errRes };
             }
-          }
 
-          const prompt = renderTemplate(step.prompt ?? "", { memory: ctx.memory, variables: ctx.variables });
-          const res = await this.invokeWithRetry(step, prompt, ctx);
-          ctx.stepResults[sid] = res;
+            const prompt = renderTemplate(step.prompt ?? '', {
+              memory: ctx.memory,
+              variables: ctx.variables,
+            });
+            const res = await this.invokeWithRetry(step, prompt, ctx);
+            ctx.stepResults[sid] = res;
 
-          // persist memory
-          if (step.memoryWrite) {
-            if (Array.isArray(step.memoryWrite)) {
-              for (const k of step.memoryWrite) ctx.memory[k] = res.output !== undefined ? res.output : null;
-            } else {
-              ctx.memory[step.memoryWrite] = res.output !== undefined ? res.output : null;
+            // persist memory
+            if (step.memoryWrite) {
+              if (Array.isArray(step.memoryWrite)) {
+                for (const k of step.memoryWrite)
+                  ctx.memory[k] = res.output !== undefined ? res.output : null;
+              } else {
+                ctx.memory[step.memoryWrite] = res.output !== undefined ? res.output : null;
+              }
             }
-          }
 
-          return { id: sid, result: res };
-        };
-      });
+            return { id: sid, result: res };
+          };
+        }
+      );
 
       const layerResults = await runTaskFnsWithLimit(taskFns, concurrency);
 

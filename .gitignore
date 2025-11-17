@@ -4,3 +4,4 @@ dist/
 *.log./*.txt
 .github/instructions/
 .DS*
+coverage/

@@ -13,7 +13,10 @@ export class OllamaService {
 
   async listModels(): Promise<OllamaModel[]> {
     try {
-      const response = await fetch(this.config.getApiUrl('/api/tags'), {
+      const url = this.config.getApiUrl('/api/tags');
+      console.error(`[OllamaService] Fetching models from: ${url}`);
+      
+      const response = await fetch(url, {
         method: 'GET',
         signal: AbortSignal.timeout(this.config.getTimeout()),
       });
@@ -26,9 +29,16 @@ export class OllamaService {
         );
       }
 
-      const data = (await response.json()) as { models?: OllamaModel[] };
-      return data.models || [];
+      const text = await response.text();
+      console.error(`[OllamaService] Raw response: ${text.substring(0, 200)}...`);
+      
+      const data = JSON.parse(text) as { models?: OllamaModel[] };
+      const models = data.models || [];
+      console.error(`[OllamaService] Parsed ${models.length} models`);
+      
+      return models;
     } catch (_error) { const error = _error;
+      console.error('[OllamaService] Error in listModels:', error);
       if (error instanceof OllamaError) throw error;
       throw new OllamaError(
         `Failed to connect to Ollama: ${error instanceof Error ? error.message : 'Unknown error'}`,

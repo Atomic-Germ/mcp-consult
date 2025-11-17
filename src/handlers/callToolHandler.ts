@@ -26,15 +26,21 @@ export class CallToolHandler extends BaseHandler {
       }
 
       case "list_ollama_models": {
-        const models = await this.ollamaService.listModels();
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(models, null, 2),
-            },
-          ],
-        };
+        try {
+          const models = await this.ollamaService.listModels();
+          console.error(`[list_ollama_models] Successfully fetched ${models.length} models`);
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(models, null, 2),
+              },
+            ],
+          };
+        } catch (error) {
+          console.error('[list_ollama_models] Error:', error);
+          throw error;
+        }
       }
 
       case "compare_ollama_responses": {

@@ -32,7 +32,7 @@ describe('OllamaService', () => {
 
       fetchSpy.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ models: mockModels }),
+        text: async () => JSON.stringify({ models: mockModels }),
       });
 
       const result = await service.listModels();
@@ -46,7 +46,7 @@ describe('OllamaService', () => {
     it('should return empty array if no models', async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({}),
+        text: async () => JSON.stringify({}),
       });
 
       const result = await service.listModels();

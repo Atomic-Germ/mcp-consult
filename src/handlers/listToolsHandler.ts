@@ -74,7 +74,14 @@ export class ListToolsHandler extends BaseHandler {
           description: "List all available Ollama models on the local system",
           inputSchema: {
             type: "object",
-            properties: {},
+            properties: {
+              _unused: {
+                type: "boolean",
+                description: "Unused parameter (can be omitted)",
+                default: false,
+              },
+            },
+            required: [],
           },
         },
         {

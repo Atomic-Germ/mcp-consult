@@ -4,7 +4,7 @@ import axios from 'axios';
 import { FlowExecutor } from '../src/executor';
 import { InMemoryStore } from '../src/memory';
 import type { Flow } from '../src/types';
-import * as handlers from '../src/handlers';
+import * as handlers from '../src/legacy-handlers';
 
 beforeEach(() => {
   vi.restoreAllMocks();

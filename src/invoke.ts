@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ExecutionContext } from './types';
-import { callToolHandler } from './handlers';
+import { callToolHandler } from './legacy-handlers';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const DEFAULT_TOOL_TIMEOUT_MS = Number(process.env.MCP_TOOL_TIMEOUT_MS || 10000);

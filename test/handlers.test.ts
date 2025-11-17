@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as handlers from '../src/handlers';
+import * as handlers from '../src/legacy-handlers';
 import axios from 'axios';
 import fs from 'fs/promises';
 import os from 'os';

@@ -1,5 +1,5 @@
 import { registerTool } from './invoke';
-import { listTools, callToolHandler } from './handlers';
+import { listTools, callToolHandler } from './legacy-handlers';
 import * as logger from './logger';
 import { getAllowedTools } from './config';
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { registerMcpTools } from '../src/mcpToolRegistrar';
-import * as handlers from '../src/handlers';
+import * as handlers from '../src/legacy-handlers';
 import { invokeTool } from '../src/invoke';
 
 describe('registerMcpTools', () => {

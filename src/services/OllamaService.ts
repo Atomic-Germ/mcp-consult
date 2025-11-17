@@ -54,7 +54,7 @@ export class OllamaService {
         system: request.systemPrompt,
         temperature: request.temperature,
         stream: false,
-      });
+      }, request.timeout);
 
       return response as ConsultResponse;
     } catch (error) {
@@ -69,7 +69,8 @@ export class OllamaService {
   async compareModels(
     models: string[],
     prompt: string,
-    systemPrompt?: string
+    systemPrompt?: string,
+    timeoutMs?: number
   ): Promise<ComparisonResult[]> {
     if (!models || models.length === 0) {
       throw new ValidationError('At least one model is required', 'models');
@@ -88,6 +89,7 @@ export class OllamaService {
             prompt,
             systemPrompt,
             stream: false,
+            timeout: timeoutMs,
           });
           return {
             model,
@@ -133,8 +135,9 @@ export class OllamaService {
     }
   }
 
-  private async makeRequest(endpoint: string, body: any): Promise<any> {
+  private async makeRequest(endpoint: string, body: any, timeoutMs?: number): Promise<any> {
     let lastError: Error | null = null;
+    const timeout = timeoutMs || this.config.getTimeout();
 
     for (let attempt = 0; attempt <= this.config.getMaxRetries(); attempt++) {
       try {
@@ -142,7 +145,7 @@ export class OllamaService {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(this.config.getTimeout()),
+          signal: AbortSignal.timeout(timeout),
         });
 
         if (!response.ok) {

@@ -9,6 +9,7 @@ export const OllamaRequestSchema = z.object({
   systemPrompt: z.string().optional(), // Alias for system
   template: z.string().optional(),
   context: z.array(z.number()).optional(),
+  timeout: z.number().min(1000).max(600000).optional(), // Timeout in milliseconds
   temperature: z.number().min(0).max(2).optional(), // Top-level for backwards compat
   options: z
     .object({

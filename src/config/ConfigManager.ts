@@ -18,7 +18,7 @@ export class ConfigManager {
       options.ollamaBaseUrl || process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
     );
     this.defaultModel = options.defaultModel || process.env.OLLAMA_DEFAULT_MODEL || 'llama2';
-    this.timeout = this.validateTimeout(options.timeout || 30000);
+    this.timeout = this.validateTimeout(options.timeout || 60000);
     this.maxRetries = this.validateMaxRetries(options.maxRetries || 3);
   }
 

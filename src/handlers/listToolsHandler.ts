@@ -52,6 +52,10 @@ export class ListToolsHandler extends BaseHandler {
                 type: 'number',
                 description: 'Sampling temperature (0.0-2.0, default: 0.7)',
               },
+              timeout_ms: {
+                type: 'number',
+                description: 'Request timeout in milliseconds (default: 60000). Increase for complex prompts with system prompts (e.g., 120000-300000 for complex reasoning)',
+              },
             },
             required: ['prompt'],
           },

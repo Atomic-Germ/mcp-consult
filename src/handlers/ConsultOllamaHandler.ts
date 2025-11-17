@@ -66,6 +66,11 @@ export class ConsultOllamaHandler extends BaseHandler {
         request.temperature = typedParams.temperature;
       }
 
+      // Include timeout if provided
+      if (typeof typedParams.timeout_ms === 'number') {
+        request.timeout = typedParams.timeout_ms;
+      }
+
       // Call Ollama service
       const response = await this.ollamaService.consult(request);
 

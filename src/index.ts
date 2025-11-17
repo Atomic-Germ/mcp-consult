@@ -1,30 +1,32 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { ConfigManager } from './config/ConfigManager.js';
 import { OllamaService } from './services/OllamaService.js';
-import { listTools, callToolHandler } from './legacy-handlers';
-import { registerMcpTools } from './mcpToolRegistrar';
+import { listToolsHandler } from './handlers/listToolsHandler.js';
+import { callToolHandler } from './handlers/callToolHandler.js';
 
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+const config = new ConfigManager();
+const ollamaService = new OllamaService(config);
+const sessionContext = new Map<string, any>();
 
 const server = new Server({
-  name: 'ollama-consult',
+  name: 'mcp-ollama-consult',
   version: '2.0.0',
 });
 
-// Expose tools via MCP request handlers (temporarily using old handlers)
-server.setRequestHandler(ListToolsRequestSchema, async () => listTools());
+// Expose tools via MCP request handlers using new refactored handlers
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  const handler = listToolsHandler();
+  return await handler.handle();
+});
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => callToolHandler(request.params));
+server.setRequestHandler(CallToolRequestSchema, async (request): Promise<CallToolResult> => {
+  const handler = callToolHandler(ollamaService, sessionContext);
+  return await handler.handle(request) as CallToolResult;
+});
 
 async function main() {
-  // Register MCP tools into the runtime tool registry (no health check)
-  try {
-    await registerMcpTools(false);
-    console.error('Registered MCP tools at startup');
-  } catch (_e) { const e = _e;
-    console.error('Failed to register MCP tools at startup:', e);
-  }
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('Ollama Consult MCP server running on stdio');

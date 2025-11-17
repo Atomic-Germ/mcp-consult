@@ -1,39 +1,40 @@
-import { BaseHandler } from './BaseHandler';
-import { OllamaService } from '../services/OllamaService';
-import { ConsultRequest } from '../types';
+import { BaseHandler } from './BaseHandler.js';
+import { OllamaService } from '../services/OllamaService.js';
+import { ConsultRequest } from '../types/index.js';
 
-/**
- * Response format for MCP tool calls
- */
 interface MCPResponse {
   content: Array<{ type: string; text: string }>;
   isError?: boolean;
 }
 
-/**
- * Handler for the consult_ollama tool.
- * Consults an Ollama model with a prompt and returns the response.
- */
 export class ConsultOllamaHandler extends BaseHandler {
   constructor(private ollamaService: OllamaService) {
     super();
   }
 
-  async handle(params: any): Promise<MCPResponse> {
-    // Validate required parameters (throws ValidationError if invalid)
-    this.validateRequired(params, ['model', 'prompt']);
+  async handle(params: unknown): Promise<MCPResponse> {
+    // Validate and cast parameters
+    const typedParams = params as Record<string, unknown>;
+
+    // Validate required parameters
+    this.validateRequired(typedParams, ['model', 'prompt']);
 
     try {
       // Build consult request
       const request: ConsultRequest = {
-        model: params.model as string,
-        prompt: params.prompt as string,
+        model: typedParams.model as string,
+        prompt: typedParams.prompt as string,
         stream: false,
       };
 
       // Include system prompt if provided
-      if (params.system_prompt) {
-        request.systemPrompt = params.system_prompt as string;
+      if (typedParams.system_prompt) {
+        request.systemPrompt = typedParams.system_prompt as string;
+      }
+
+      // Include temperature if provided
+      if (typeof typedParams.temperature === 'number') {
+        request.temperature = typedParams.temperature;
       }
 
       // Call Ollama service

@@ -12,19 +12,15 @@ class TestHandler extends BaseHandler {
 describe('BaseHandler', () => {
   it('should validate required fields', async () => {
     const handler = new TestHandler();
-    
-    await expect(
-      handler.handle({ model: 'test' })
-    ).rejects.toThrow(ValidationError);
-    
-    await expect(
-      handler.handle({ prompt: 'test' })
-    ).rejects.toThrow(ValidationError);
+
+    await expect(handler.handle({ model: 'test' })).rejects.toThrow(ValidationError);
+
+    await expect(handler.handle({ prompt: 'test' })).rejects.toThrow(ValidationError);
   });
 
   it('should pass validation with all required fields', async () => {
     const handler = new TestHandler();
-    
+
     const result = await handler.handle({ model: 'test', prompt: 'test' });
     expect(result).toEqual({ success: true });
   });
@@ -39,7 +35,7 @@ describe('BaseHandler', () => {
         }
       }
     }
-    
+
     const handler = new ErrorHandler();
     await expect(handler.handle({})).rejects.toThrow('Test error');
   });

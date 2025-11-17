@@ -14,8 +14,7 @@ export class OllamaService {
   async listModels(): Promise<OllamaModel[]> {
     try {
       const url = this.config.getApiUrl('/api/tags');
-      console.error(`[OllamaService] Fetching models from: ${url}`);
-      
+
       const response = await fetch(url, {
         method: 'GET',
         signal: AbortSignal.timeout(this.config.getTimeout()),
@@ -30,15 +29,9 @@ export class OllamaService {
       }
 
       const text = await response.text();
-      console.error(`[OllamaService] Raw response: ${text.substring(0, 200)}...`);
-      
       const data = JSON.parse(text) as { models?: OllamaModel[] };
-      const models = data.models || [];
-      console.error(`[OllamaService] Parsed ${models.length} models`);
-      
-      return models;
-    } catch (_error) { const error = _error;
-      console.error('[OllamaService] Error in listModels:', error);
+      return data.models || [];
+    } catch (error) {
       if (error instanceof OllamaError) throw error;
       throw new OllamaError(
         `Failed to connect to Ollama: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -60,7 +53,7 @@ export class OllamaService {
       });
 
       return response as ConsultResponse;
-    } catch (_error) { const error = _error;
+    } catch (error) {
       if (error instanceof OllamaError || error instanceof ValidationError) throw error;
       throw new OllamaError(
         `Consultation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -97,7 +90,7 @@ export class OllamaService {
             response: response.response,
             duration: Date.now() - startTime,
           };
-        } catch (_error) { const error = _error;
+        } catch (error) {
           return {
             model,
             response: '',
@@ -154,7 +147,7 @@ export class OllamaService {
         }
 
         return await response.json();
-      } catch (_error) { const error = _error;
+      } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
 
         if (error instanceof OllamaError) throw error;

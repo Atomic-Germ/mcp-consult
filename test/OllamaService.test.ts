@@ -129,15 +129,15 @@ describe('OllamaService', () => {
     });
 
     it('should validate model is required', async () => {
-      await expect(
-        service.consult({ model: '', prompt: 'test', stream: false })
-      ).rejects.toThrow(ValidationError);
+      await expect(service.consult({ model: '', prompt: 'test', stream: false })).rejects.toThrow(
+        ValidationError
+      );
     });
 
     it('should validate prompt is required', async () => {
-      await expect(
-        service.consult({ model: 'llama2', prompt: '', stream: false })
-      ).rejects.toThrow(ValidationError);
+      await expect(service.consult({ model: 'llama2', prompt: '', stream: false })).rejects.toThrow(
+        ValidationError
+      );
     });
 
     it('should validate temperature range', async () => {

@@ -60,7 +60,8 @@ export async function invokeTool(
   try {
     const p = Promise.resolve(callToolHandler({ name, arguments: args }));
     return await withTimeout(p, timeoutMs, name);
-  } catch (_e) { const e = _e;
+  } catch (_e) {
+    const e = _e;
     throw new Error(`Unknown tool or handler failed: ${name} (${(e as Error).message})`);
   }
 }

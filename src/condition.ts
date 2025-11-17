@@ -8,7 +8,8 @@ export function evalCondition(
     const fn = new Function('memory', '$', `return (${expr});`);
     const result = fn(ctx.memory, (k: string) => ctx.variables[k]);
     return Boolean(result);
-  } catch (_e) { const e = _e;
+  } catch (_e) {
+    const e = _e;
     throw new Error(`Condition eval error: ${(e as Error).message}`);
   }
 }

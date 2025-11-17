@@ -11,7 +11,7 @@ describe('ConsultOllamaHandler', () => {
     mockService = {
       consult: vi.fn(),
     } as any;
-    
+
     handler = new ConsultOllamaHandler(mockService);
   });
 
@@ -22,7 +22,7 @@ describe('ConsultOllamaHandler', () => {
         response: 'Test response',
         done: true,
       };
-      
+
       vi.mocked(mockService.consult).mockResolvedValueOnce(mockResponse);
 
       const result = await handler.handle({
@@ -31,12 +31,14 @@ describe('ConsultOllamaHandler', () => {
       });
 
       expect(result).toEqual({
-        content: [{
-          type: 'text',
-          text: 'Test response',
-        }],
+        content: [
+          {
+            type: 'text',
+            text: 'Test response',
+          },
+        ],
       });
-      
+
       expect(mockService.consult).toHaveBeenCalledWith({
         model: 'llama2',
         prompt: 'Test prompt',
@@ -50,7 +52,7 @@ describe('ConsultOllamaHandler', () => {
         response: 'Test response',
         done: true,
       };
-      
+
       vi.mocked(mockService.consult).mockResolvedValueOnce(mockResponse);
 
       await handler.handle({
@@ -68,21 +70,15 @@ describe('ConsultOllamaHandler', () => {
     });
 
     it('should validate required model parameter', async () => {
-      await expect(
-        handler.handle({ prompt: 'test' })
-      ).rejects.toThrow(ValidationError);
+      await expect(handler.handle({ prompt: 'test' })).rejects.toThrow(ValidationError);
     });
 
     it('should validate required prompt parameter', async () => {
-      await expect(
-        handler.handle({ model: 'llama2' })
-      ).rejects.toThrow(ValidationError);
+      await expect(handler.handle({ model: 'llama2' })).rejects.toThrow(ValidationError);
     });
 
     it('should handle errors with proper formatting', async () => {
-      vi.mocked(mockService.consult).mockRejectedValueOnce(
-        new Error('Connection refused')
-      );
+      vi.mocked(mockService.consult).mockRejectedValueOnce(new Error('Connection refused'));
 
       const result = await handler.handle({
         model: 'llama2',
@@ -90,17 +86,19 @@ describe('ConsultOllamaHandler', () => {
       });
 
       expect(result).toEqual({
-        content: [{
-          type: 'text',
-          text: expect.stringContaining('Error consulting Ollama'),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: expect.stringContaining('Error consulting Ollama'),
+          },
+        ],
         isError: true,
       });
     });
 
     it('should handle OllamaError with proper formatting', async () => {
       const { OllamaError } = await import('../../src/types');
-      
+
       vi.mocked(mockService.consult).mockRejectedValueOnce(
         new OllamaError('Model not found', 'MODEL_NOT_FOUND', 404)
       );
@@ -111,10 +109,12 @@ describe('ConsultOllamaHandler', () => {
       });
 
       expect(result).toEqual({
-        content: [{
-          type: 'text',
-          text: expect.stringContaining('Model not found'),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: expect.stringContaining('Model not found'),
+          },
+        ],
         isError: true,
       });
     });

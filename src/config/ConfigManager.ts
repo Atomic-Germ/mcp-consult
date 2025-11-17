@@ -1,4 +1,4 @@
-import { ValidationError } from '../types';
+import { ValidationError } from '../types/index.js';
 
 export interface ConfigOptions {
   ollamaBaseUrl?: string;
@@ -29,7 +29,7 @@ export class ConfigManager {
         throw new ValidationError('URL must use HTTP or HTTPS protocol', 'ollamaBaseUrl');
       }
       return url.replace(/\/$/, ''); // Remove trailing slash
-    } catch (_error) { const error = _error;
+    } catch {
       throw new ValidationError(`Invalid Ollama base URL: ${url}`, 'ollamaBaseUrl');
     }
   }

@@ -51,7 +51,8 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
     const found = models.find((m: any) => m && m.name === modelName);
     if (!found) return false;
     return modelObjIsSafe(found);
-  } catch (_e) { const e = _e;
+  } catch (_e) {
+    const e = _e;
     // If we couldn't query Ollama, be conservative and return false so callers can handle gracefully
     return false;
   }
@@ -185,7 +186,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
               .filter((m: any) => modelObjIsSafe(m))
               .map((m: any) => m.name)
               .slice(0, 5);
-          } catch (_e) { const e = _e;
+          } catch (_e) {
+            const e = _e;
             // ignore
           }
 
@@ -217,7 +219,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (_error) { const error = _error;
+      } catch (_error) {
+        const error = _error;
         const message = error instanceof Error ? error.message : 'Unknown error';
         return {
           content: [
@@ -234,18 +237,18 @@ export async function callToolHandler(params: { name: string; arguments?: any })
     case 'list_ollama_models': {
       try {
         const response = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
-        
+
         // Add defensive checks for response data
         if (!response || !response.data) {
           throw new Error('Empty response from Ollama API');
         }
-        
+
         const rawModels = response.data.models || [];
-        
+
         if (!Array.isArray(rawModels)) {
           throw new Error(`Unexpected response format: models is not an array`);
         }
-        
+
         const safe = rawModels.filter((m: any) => modelObjIsSafe(m)).map((m: any) => m.name);
 
         let modelsList: string[] = [];
@@ -272,7 +275,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (_error) { const error = _error;
+      } catch (_error) {
+        const error = _error;
         const message = error instanceof Error ? error.message : 'Unknown error';
         const stack = error instanceof Error ? error.stack : '';
         return {
@@ -312,7 +316,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           try {
             if (await isModelAvailable(m)) ok.push(m);
             else bad.push(m);
-          } catch (_e) { const e = _e;
+          } catch (_e) {
+            const e = _e;
             bad.push(m);
           }
         }
@@ -346,7 +351,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             candidates.length > 0
               ? candidates
               : (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
-        } catch (_err) { const err = _err;
+        } catch (_err) {
+          const err = _err;
           modelsToUse = ['llama2'];
         }
       }
@@ -361,7 +367,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             stream: false,
           });
           contents.push({ type: 'text', text: `Model ${m}:\n${gen.data.response}` });
-        } catch (_e) { const e = _e;
+        } catch (_e) {
+          const e = _e;
           const message = e instanceof Error ? e.message : String(e);
           contents.push({ type: 'text', text: `Model ${m} failed: ${message}` });
         }
@@ -406,7 +413,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             stream: false,
           });
           responseText = gen.data.response;
-        } catch (_e) { const e = _e;
+        } catch (_e) {
+          const e = _e;
           const message = e instanceof Error ? e.message : String(e);
           return {
             content: [{ type: 'text', text: `Failed to generate response: ${message}` }],
@@ -434,12 +442,14 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           try {
             const parsed = JSON.parse(envCfg);
             tryServers.push(parsed);
-          } catch (_e) { const e = _e;
+          } catch (_e) {
+            const e = _e;
             const [cmd, ...argList] = envCfg.split(/\s+/);
             tryServers.push({ type: 'stdio', command: cmd, args: argList });
           }
         }
-      } catch (_e) { const e = _e;
+      } catch (_e) {
+        const e = _e;
         // ignore
       }
 
@@ -457,11 +467,13 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             const memoryKey = keys.find((k) => k.toLowerCase().includes('memory'));
             if (rememberKey) tryServers.push(servers[rememberKey]);
             if (memoryKey) tryServers.push(servers[memoryKey]);
-          } catch (_e) { const e = _e;
+          } catch (_e) {
+            const e = _e;
             // ignore parse errors
           }
         }
-      } catch (_e) { const e = _e;
+      } catch (_e) {
+        const e = _e;
         // ignore
       }
 
@@ -564,7 +576,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           if (r && !r.isError) {
             return r;
           }
-        } catch (_e) { const e = _e;
+        } catch (_e) {
+          const e = _e;
           // try next server
         }
       }
@@ -599,7 +612,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (_err) { const err = _err;
+      } catch (_err) {
+        const err = _err;
         const message = err instanceof Error ? err.message : String(err);
         return {
           content: [{ type: 'text', text: `Failed to save memory: ${message}` }],
@@ -697,7 +711,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
                 },
               };
               messages.push(message);
-            } catch (_error) { const error = _error;
+            } catch (_error) {
+              const error = _error;
               retryCount++;
               stepError = error instanceof Error ? error.message : 'Unknown error';
 
@@ -810,7 +825,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (_error) { const error = _error;
+      } catch (_error) {
+        const error = _error;
         const message = error instanceof Error ? error.message : 'Unknown error';
         return {
           content: [

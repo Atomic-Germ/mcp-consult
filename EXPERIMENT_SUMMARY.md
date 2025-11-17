@@ -98,7 +98,7 @@
 ### Code Optimization Workflow:
 ```
 1. Run mcp-optimist analyze_performance → Identify hotspots
-2. Run ollama-consult with dirt.js → Get AI recommendations
+2. Run consult with dirt.js → Get AI recommendations
 3. Implement fixes based on suggestions
 4. Re-run performance analysis → Verify improvements
 ```

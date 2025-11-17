@@ -14,7 +14,7 @@ export class ListToolsHandler extends BaseHandler {
               model: {
                 type: 'string',
                 description:
-                  'Model to use (e.g., "llama3.2", "qwen2.5-coder:7b"). Defaults to config default_model.',
+                  'Model to use (e.g., "qwen2.5-coder:7b-cloud"). If not specified, uses the first available model. Must be a cloud model (ends with :cloud or -cloud) or locally installed.',
               },
               prompt: {
                 type: 'string',
@@ -58,7 +58,7 @@ export class ListToolsHandler extends BaseHandler {
         },
         {
           name: 'list_ollama_models',
-          description: 'List all available Ollama models on the local system',
+          description: 'List all available Ollama models on the local system (installed or cloud-based)',
           inputSchema: {
             type: 'object',
             properties: {},
@@ -75,7 +75,8 @@ export class ListToolsHandler extends BaseHandler {
               models: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'List of model names to compare',
+                description:
+                  'List of model names to compare. If not specified, uses the first two available models.',
               },
               prompt: {
                 type: 'string',
@@ -91,7 +92,7 @@ export class ListToolsHandler extends BaseHandler {
                 },
               },
             },
-            required: ['models', 'prompt'],
+            required: ['prompt'],
           },
         },
         {

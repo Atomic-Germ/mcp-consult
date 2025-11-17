@@ -88,7 +88,7 @@ Comprehensive refactoring of mcp-consult following best practices learned from m
 ## Tools Used
 - **mcp-optimist**: Code analysis and optimization recommendations
 - **mcp-tdd**: Test-driven development workflow
-- **ollama-consult**: AI-powered design decisions
+- **consult**: AI-powered design decisions
 - **Vitest**: Testing framework
 - **TypeScript**: Type safety
 

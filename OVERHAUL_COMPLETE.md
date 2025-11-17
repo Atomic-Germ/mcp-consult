@@ -45,7 +45,7 @@ src/
 **Please rebuild and restart:**
 ```bash
 pnpm build
-# Then restart ollama-consult MCP server
+# Then restart consult MCP server
 ```
 
 The refactored architecture is now live and ready to test!
@@ -121,7 +121,7 @@ This overhaul proves that combining three powerful MCP tools creates an unstoppa
 
 1. **mcp-optimist** - Automated analysis finds issues humans miss
 2. **mcp-tdd** - Enforces quality and prevents regressions
-3. **ollama-consult** - AI guidance for complex decisions
+3. **consult** - AI guidance for complex decisions
 
 **Result:** Production-ready code in hours, not days!
 

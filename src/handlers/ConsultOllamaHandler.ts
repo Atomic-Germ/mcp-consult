@@ -1,5 +1,6 @@
 import { BaseHandler } from './BaseHandler.js';
 import { OllamaService } from '../services/OllamaService.js';
+import { ModelValidator } from '../services/ModelValidator.js';
 import { ConsultRequest } from '../types/index.js';
 
 interface MCPResponse {
@@ -8,21 +9,49 @@ interface MCPResponse {
 }
 
 export class ConsultOllamaHandler extends BaseHandler {
-  constructor(private ollamaService: OllamaService) {
+  private modelValidator: ModelValidator;
+
+  constructor(
+    private ollamaService: OllamaService,
+    modelValidator?: ModelValidator
+  ) {
     super();
+    this.modelValidator = modelValidator || new ModelValidator(this.ollamaService.getConfig());
   }
 
   async handle(params: unknown): Promise<MCPResponse> {
     // Validate and cast parameters
     const typedParams = params as Record<string, unknown>;
 
-    // Validate required parameters
-    this.validateRequired(typedParams, ['model', 'prompt']);
-
     try {
+      // Validate required parameters
+      this.validateRequired(typedParams, ['prompt']);
+
+      let model = (typedParams.model as string) || '';
+
+      // If no model specified or model is unavailable, use default
+      if (!model) {
+        model = await this.modelValidator.getDefaultModel();
+      } else {
+        const isAvailable = await this.modelValidator.isModelAvailable(model);
+        if (!isAvailable) {
+          const suggestions = await this.modelValidator.getSuggestions(3);
+          const defaultModel = await this.modelValidator.getDefaultModel();
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Model '${model}' is not available. Using default model: ${defaultModel}. Available models: ${suggestions.join(', ')}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+      }
+
       // Build consult request
       const request: ConsultRequest = {
-        model: typedParams.model as string,
+        model,
         prompt: typedParams.prompt as string,
         stream: false,
       };

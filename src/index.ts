@@ -15,7 +15,7 @@ const ollamaService = new OllamaService(config);
 const sessionContext = new Map<string, unknown>();
 
 const server = new Server({
-  name: 'mcp-ollama-consult',
+  name: 'mcp-consult',
   version: '2.0.0',
 });
 

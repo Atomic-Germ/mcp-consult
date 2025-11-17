@@ -1,7 +1,7 @@
 # The Complete MCP-Consult Overhaul Journey
 
 ## Overview
-A comprehensive refactoring of mcp-consult using mcp-optimist, mcp-tdd, and ollama-consult to transform a monolithic codebase into a production-ready MCP server.
+A comprehensive refactoring of mcp-consult using mcp-optimist, mcp-tdd, and consult to transform a monolithic codebase into a production-ready MCP server.
 
 ---
 
@@ -30,7 +30,7 @@ optimize_memory /path/to/mcp-consult
 
 ## Phase 2: Architecture Design
 
-### Using ollama-consult
+### Using consult
 Consulted with cloud models for architectural guidance:
 
 ```typescript
@@ -305,7 +305,7 @@ This overhaul demonstrates that modern development tools can transform legacy co
 **Result:** Production-ready, well-tested, maintainable MCP server  
 **ROI:** Immeasurable (prevents future bugs, enables rapid feature development)
 
-**The combination of mcp-optimist, mcp-tdd, and ollama-consult is a game-changer for software development!**
+**The combination of mcp-optimist, mcp-tdd, and consult is a game-changer for software development!**
 
 ---
 

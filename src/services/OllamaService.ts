@@ -11,6 +11,10 @@ import {
 export class OllamaService {
   constructor(private config: ConfigManager) {}
 
+  getConfig(): ConfigManager {
+    return this.config;
+  }
+
   async listModels(): Promise<OllamaModel[]> {
     try {
       const url = this.config.getApiUrl('/api/tags');

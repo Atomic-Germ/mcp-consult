@@ -1,5 +1,5 @@
 // Extended conversation types for advanced consultation patterns
-import { MemoryData } from './types.js';
+import { MemoryData } from './types/executor.types';
 
 export interface ConsultantConfig {
   id: string;

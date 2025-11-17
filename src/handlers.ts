@@ -9,7 +9,6 @@ import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
   SequentialChainParams,
   SequentialChainResult,
-  ConversationState,
   ChainStep,
   ConversationMessage,
 } from './conversationTypes.js';
@@ -52,7 +51,7 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
     const found = models.find((m: any) => m && m.name === modelName);
     if (!found) return false;
     return modelObjIsSafe(found);
-  } catch (e) {
+  } catch (_e) { const e = _e;
     // If we couldn't query Ollama, be conservative and return false so callers can handle gracefully
     return false;
   }
@@ -186,7 +185,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
               .filter((m: any) => modelObjIsSafe(m))
               .map((m: any) => m.name)
               .slice(0, 5);
-          } catch (e) {
+          } catch (_e) { const e = _e;
             // ignore
           }
 
@@ -218,7 +217,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (error) {
+      } catch (_error) { const error = _error;
         const message = error instanceof Error ? error.message : 'Unknown error';
         return {
           content: [
@@ -262,7 +261,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (error) {
+      } catch (_error) { const error = _error;
         const message = error instanceof Error ? error.message : 'Unknown error';
         return {
           content: [
@@ -301,7 +300,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           try {
             if (await isModelAvailable(m)) ok.push(m);
             else bad.push(m);
-          } catch (e) {
+          } catch (_e) { const e = _e;
             bad.push(m);
           }
         }
@@ -335,7 +334,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             candidates.length > 0
               ? candidates
               : (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
-        } catch (err) {
+        } catch (_err) { const err = _err;
           modelsToUse = ['llama2'];
         }
       }
@@ -350,7 +349,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             stream: false,
           });
           contents.push({ type: 'text', text: `Model ${m}:\n${gen.data.response}` });
-        } catch (e) {
+        } catch (_e) { const e = _e;
           const message = e instanceof Error ? e.message : String(e);
           contents.push({ type: 'text', text: `Model ${m} failed: ${message}` });
         }
@@ -395,7 +394,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             stream: false,
           });
           responseText = gen.data.response;
-        } catch (e) {
+        } catch (_e) { const e = _e;
           const message = e instanceof Error ? e.message : String(e);
           return {
             content: [{ type: 'text', text: `Failed to generate response: ${message}` }],
@@ -423,12 +422,12 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           try {
             const parsed = JSON.parse(envCfg);
             tryServers.push(parsed);
-          } catch (e) {
+          } catch (_e) { const e = _e;
             const [cmd, ...argList] = envCfg.split(/\s+/);
             tryServers.push({ type: 'stdio', command: cmd, args: argList });
           }
         }
-      } catch (e) {
+      } catch (_e) { const e = _e;
         // ignore
       }
 
@@ -446,11 +445,11 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             const memoryKey = keys.find((k) => k.toLowerCase().includes('memory'));
             if (rememberKey) tryServers.push(servers[rememberKey]);
             if (memoryKey) tryServers.push(servers[memoryKey]);
-          } catch (e) {
+          } catch (_e) { const e = _e;
             // ignore parse errors
           }
         }
-      } catch (e) {
+      } catch (_e) { const e = _e;
         // ignore
       }
 
@@ -553,7 +552,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           if (r && !r.isError) {
             return r;
           }
-        } catch (e) {
+        } catch (_e) { const e = _e;
           // try next server
         }
       }
@@ -588,7 +587,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (err) {
+      } catch (_err) { const err = _err;
         const message = err instanceof Error ? err.message : String(err);
         return {
           content: [{ type: 'text', text: `Failed to save memory: ${message}` }],
@@ -686,7 +685,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
                 },
               };
               messages.push(message);
-            } catch (error) {
+            } catch (_error) { const error = _error;
               retryCount++;
               stepError = error instanceof Error ? error.message : 'Unknown error';
 
@@ -799,7 +798,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (error) {
+      } catch (_error) { const error = _error;
         const message = error instanceof Error ? error.message : 'Unknown error';
         return {
           content: [

@@ -21,7 +21,7 @@ async function main() {
   try {
     await registerMcpTools(false);
     console.error('Registered MCP tools at startup');
-  } catch (e) {
+  } catch (_e) { const e = _e;
     console.error('Failed to register MCP tools at startup:', e);
   }
   const transport = new StdioServerTransport();

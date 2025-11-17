@@ -13,7 +13,7 @@ export function getAllowedTools(): string[] | undefined {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) return parsed.map(String);
       }
-    } catch (e) {
+    } catch (_e) { const e = _e;
       // fallthrough to comma split
     }
     return trimmed
@@ -29,7 +29,7 @@ export function getAllowedTools(): string[] | undefined {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed.allowedTools)) return parsed.allowedTools.map(String);
     }
-  } catch (e) {
+  } catch (_e) { const e = _e;
     // ignore
   }
 

@@ -146,7 +146,7 @@ export async function registerMcpTools(
           const callArgs = mapArgsFromSchema(name, inputSchema, args || {});
           const resp = await callToolHandler({ name, arguments: callArgs });
           return resp;
-        } catch (e) {
+        } catch (_e) { const e = _e;
           logger.error(
             `Tool invocation failed: ${name}`,
             e instanceof Error ? e.message : String(e)
@@ -173,11 +173,11 @@ export async function registerMcpTools(
           await callToolHandler({ name, arguments: sampleArgs }).catch((e) => {
             logger.warn(`Health check failed for ${name}: ${(e as Error).message}`);
           });
-        } catch (e) {
+        } catch (_e) { const e = _e;
           logger.warn(`Health check exception for ${name}: ${(e as Error).message}`);
         }
       }
-    } catch (e) {
+    } catch (_e) { const e = _e;
       logger.error(`Failed to register tool ${name}:`, e instanceof Error ? e.message : String(e));
       continue;
     }

@@ -52,7 +52,7 @@ export class FlowExecutor {
         let ok = false;
         try {
           ok = evalCondition(step.condition, { memory: ctx.memory, variables: ctx.variables });
-        } catch (e) {
+        } catch (_e) { const e = _e;
           // Record condition error and skip to next
           ctx.stepResults[stepId] = {
             stepId,
@@ -136,9 +136,9 @@ export class FlowExecutor {
         }
 
         return { stepId: step.id!, success: true, output, attempts: attempt + 1 };
-      } catch (e) {
+      } catch (_e) { const e = _e;
         attempt++;
-        const message = e instanceof Error ? e.message : String(e);
+        const message = _e instanceof Error ? _e.message : String(_e);
         if (attempt > maxRetries) {
           return { stepId: step.id!, success: false, error: message, attempts: attempt };
         }
@@ -208,7 +208,7 @@ export class FlowExecutor {
       let idx = 0;
       let active = 0;
 
-      return new Promise<typeof results>((resolve, reject) => {
+      return new Promise<typeof results>((resolve, _reject) => {
         const next = () => {
           if (results.length === taskFns.length) return resolve(results);
           while (active < limit && idx < taskFns.length) {
@@ -262,7 +262,7 @@ export class FlowExecutor {
                   ctx.stepResults[sid] = skippedRes;
                   return { id: sid, result: skippedRes };
                 }
-              } catch (e) {
+              } catch (_e) { const e = _e;
                 const errRes: StepResult = {
                   stepId: sid,
                   success: false,

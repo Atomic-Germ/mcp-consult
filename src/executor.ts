@@ -13,7 +13,7 @@ export class FlowExecutor {
 
   async run(
     flow: Flow,
-    variables?: Record<string, any>,
+    variables?: Record<string, unknown>,
     options?: { maxConcurrency?: number }
   ): Promise<ExecutionContext> {
     const memory = await this.memoryStore.load(flow.id);
@@ -26,7 +26,12 @@ export class FlowExecutor {
     };
 
     // Detect DAG usage: if any step has dependsOn/depends_on, use DAG executor
-    const usesDag = flow.steps.some((s) => Boolean((s as any).dependsOn || (s as any).depends_on));
+    const usesDag = flow.steps.some((s) =>
+      Boolean(
+        (s as { dependsOn?: string; depends_on?: string }).dependsOn ||
+          (s as { dependsOn?: string; depends_on?: string }).depends_on
+      )
+    );
     if (usesDag) {
       await this.runDAG(flow, ctx, options?.maxConcurrency);
       await this.memoryStore.save(flow.id, ctx.memory);
@@ -123,7 +128,7 @@ export class FlowExecutor {
 
     while (attempt <= maxRetries) {
       try {
-        let output: any;
+        let output: unknown;
         if (step.model) {
           output = await invokeOllama(step.model, prompt, step.system_prompt);
         } else if (step.tool) {
@@ -140,7 +145,7 @@ export class FlowExecutor {
       } catch (_e) {
         const e = _e;
         attempt++;
-        const message = _e instanceof Error ? _e.message : String(_e);
+        const message = e instanceof Error ? e.message : String(e);
         if (attempt > maxRetries) {
           return { stepId: step.id!, success: false, error: message, attempts: attempt };
         }

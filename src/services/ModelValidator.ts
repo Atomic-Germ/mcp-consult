@@ -38,7 +38,7 @@ export class ModelValidator {
 
     try {
       return await this.providerManager.isModelAvailable(modelName);
-    } catch (_error) {
+    } catch {
       // If we can't check, assume unavailable to be safe
       return false;
     }
@@ -67,7 +67,7 @@ export class ModelValidator {
     try {
       const models = await this.getAvailableModels();
       return models.slice(0, count).map((m) => m.name);
-    } catch (_error) {
+    } catch {
       return [];
     }
   }

@@ -2,7 +2,6 @@ import { BaseHandler } from './BaseHandler.js';
 import { ConsultOllamaHandler } from './ConsultOllamaHandler.js';
 import { ProviderManager } from '../services/ProviderManager.js';
 import { ConfigManager } from '../config/ConfigManager.js';
-import { OllamaService } from '../services/OllamaService.js';
 
 interface CallToolRequest {
   params: {

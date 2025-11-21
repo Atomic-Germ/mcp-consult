@@ -51,8 +51,7 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
     const found = models.find((m: any) => m && m.name === modelName);
     if (!found) return false;
     return modelObjIsSafe(found);
-  } catch (_e) {
-    const e = _e;
+  } catch {
     // If we couldn't query Ollama, be conservative and return false so callers can handle gracefully
     return false;
   }
@@ -186,8 +185,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
               .filter((m: any) => modelObjIsSafe(m))
               .map((m: any) => m.name)
               .slice(0, 5);
-          } catch (_e) {
-            const e = _e;
+          } catch {
             // ignore
           }
 
@@ -219,14 +217,12 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             },
           ],
         };
-      } catch (_error) {
-        const error = _error;
-        const message = error instanceof Error ? error.message : 'Unknown error';
+      } catch {
         return {
           content: [
             {
               type: 'text',
-              text: `Error consulting Ollama: ${message}`,
+              text: `Error consulting Ollama: Unknown error`,
             },
           ],
           isError: true,
@@ -316,8 +312,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           try {
             if (await isModelAvailable(m)) ok.push(m);
             else bad.push(m);
-          } catch (_e) {
-            const e = _e;
+          } catch {
             bad.push(m);
           }
         }
@@ -351,8 +346,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             candidates.length > 0
               ? candidates
               : (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
-        } catch (_err) {
-          const err = _err;
+        } catch {
           modelsToUse = ['llama2'];
         }
       }
@@ -367,9 +361,8 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             stream: false,
           });
           contents.push({ type: 'text', text: `Model ${m}:\n${gen.data.response}` });
-        } catch (_e) {
-          const e = _e;
-          const message = e instanceof Error ? e.message : String(e);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
           contents.push({ type: 'text', text: `Model ${m} failed: ${message}` });
         }
       }
@@ -414,8 +407,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           });
           responseText = gen.data.response;
         } catch (_e) {
-          const e = _e;
-          const message = e instanceof Error ? e.message : String(e);
+          const message = _e instanceof Error ? _e.message : String(_e);
           return {
             content: [{ type: 'text', text: `Failed to generate response: ${message}` }],
             isError: true,
@@ -442,14 +434,12 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           try {
             const parsed = JSON.parse(envCfg);
             tryServers.push(parsed);
-          } catch (_e) {
-            const e = _e;
+          } catch {
             const [cmd, ...argList] = envCfg.split(/\s+/);
             tryServers.push({ type: 'stdio', command: cmd, args: argList });
           }
         }
-      } catch (_e) {
-        const e = _e;
+      } catch {
         // ignore
       }
 
@@ -467,13 +457,11 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             const memoryKey = keys.find((k) => k.toLowerCase().includes('memory'));
             if (rememberKey) tryServers.push(servers[rememberKey]);
             if (memoryKey) tryServers.push(servers[memoryKey]);
-          } catch (_e) {
-            const e = _e;
+          } catch {
             // ignore parse errors
           }
         }
-      } catch (_e) {
-        const e = _e;
+      } catch {
         // ignore
       }
 
@@ -576,8 +564,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           if (r && !r.isError) {
             return r;
           }
-        } catch (_e) {
-          const e = _e;
+        } catch {
           // try next server
         }
       }
@@ -613,8 +600,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           ],
         };
       } catch (_err) {
-        const err = _err;
-        const message = err instanceof Error ? err.message : String(err);
+        const message = _err instanceof Error ? _err.message : String(_err);
         return {
           content: [{ type: 'text', text: `Failed to save memory: ${message}` }],
           isError: true,

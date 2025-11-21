@@ -74,19 +74,17 @@ export function parseFlowConfigText(text: string, format?: 'yaml' | 'json'): Flo
       }
     }
   } catch (_err) {
-    const err = _err;
-    throw new Error(`Failed to parse config (${format ?? 'auto'}): ${(err as Error).message}`);
+    throw new Error(`Failed to parse config (${format ?? 'auto'}): ${(_err as Error).message}`);
   }
 
   try {
     const parsed = TopSchema.parse(raw);
     return parsed;
   } catch (_err) {
-    const err = _err;
-    if (err instanceof z.ZodError) {
-      throw new Error(`Flow config validation error: ${err.message}`);
+    if (_err instanceof z.ZodError) {
+      throw new Error(`Flow config validation error: ${_err.message}`);
     }
-    throw err;
+    throw _err;
   }
 }
 
@@ -105,7 +103,6 @@ export function tryParseFlowConfigText(
     const cfg = parseFlowConfigText(text, format);
     return { success: true, config: cfg };
   } catch (_e) {
-    const e = _e;
     return { success: false, error: _e instanceof Error ? _e.message : String(_e) };
   }
 }

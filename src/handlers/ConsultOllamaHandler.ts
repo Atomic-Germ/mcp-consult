@@ -28,13 +28,9 @@ export class ConsultOllamaHandler extends BaseHandler {
       this.validateRequired(typedParams, ['prompt']);
 
       const model = (typedParams.model as string) || '';
-      const prompt = typedParams.prompt as string;
-      const systemPrompt = (typedParams.system_prompt as string) || undefined;
-      const temperature = (typedParams.temperature as number) || undefined;
-      const timeoutMs = (typedParams.timeout_ms as number) || undefined;
 
       // Consult with the provider manager (handles model validation and failover)
-      const response = await this.providerManager.consult(model, prompt, systemPrompt, timeoutMs);
+      const response = await this.providerManager.consult(model);
 
       // Return formatted response
       return {

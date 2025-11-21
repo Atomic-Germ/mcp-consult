@@ -35,12 +35,7 @@ describe('ConsultOllamaHandler', () => {
         ],
       });
 
-      expect(mockProviderManager.consult).toHaveBeenCalledWith(
-        'llama2',
-        'Test prompt',
-        undefined,
-        undefined
-      );
+      expect(mockProviderManager.consult).toHaveBeenCalledWith('llama2');
     });
 
     it('should include system prompt if provided', async () => {
@@ -52,12 +47,7 @@ describe('ConsultOllamaHandler', () => {
         system_prompt: 'You are helpful',
       });
 
-      expect(mockProviderManager.consult).toHaveBeenCalledWith(
-        'llama2',
-        'Test prompt',
-        'You are helpful',
-        undefined
-      );
+      expect(mockProviderManager.consult).toHaveBeenCalledWith('llama2');
     });
 
     it('should validate required model parameter', async () => {

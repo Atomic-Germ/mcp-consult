@@ -1,13 +1,14 @@
 import axios from 'axios';
-import { ExecutionContext } from './types';
 import { callToolHandler } from './legacy-handlers';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const DEFAULT_TOOL_TIMEOUT_MS = Number(process.env.MCP_TOOL_TIMEOUT_MS || 10000);
 
-export async function invokeOllama(model: string, prompt: string, system?: string): Promise<any> {
-  // Use direct Ollama call for backward compatibility
-  // The ProviderManager is used at the handler level, not here
+export async function invokeOllama(
+  model: string,
+  prompt: string,
+  system?: string
+): Promise<string> {
   try {
     const resp = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
       model,
@@ -17,17 +18,18 @@ export async function invokeOllama(model: string, prompt: string, system?: strin
     });
 
     if (!resp || !resp.data) throw new Error('No response from Ollama');
-    // Ollama shape: { response: "..." }
     return resp.data.response;
   } catch (error) {
-    // Re-throw to let caller handle it
     throw error;
   }
 }
 
-const toolRegistry: Record<string, (args: any) => Promise<any>> = {};
+const toolRegistry: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {};
 
-export function registerTool(name: string, fn: (args: any) => Promise<any>) {
+export function registerTool(
+  name: string,
+  fn: (args: Record<string, unknown>) => Promise<unknown>
+) {
   toolRegistry[name] = fn;
 }
 
@@ -51,9 +53,9 @@ function withTimeout<T>(p: Promise<T>, ms: number, name?: string): Promise<T> {
 
 export async function invokeTool(
   name: string,
-  args: any,
+  args: Record<string, unknown>,
   options?: { timeoutMs?: number }
-): Promise<any> {
+): Promise<unknown> {
   const fn = toolRegistry[name];
   const timeoutMs =
     options && typeof options.timeoutMs === 'number' ? options.timeoutMs : DEFAULT_TOOL_TIMEOUT_MS;
@@ -63,31 +65,31 @@ export async function invokeTool(
     return await withTimeout(p, timeoutMs, name);
   }
 
-  // Fallback: try calling local MCP handlers if available
   try {
     const p = Promise.resolve(callToolHandler({ name, arguments: args }));
     return await withTimeout(p, timeoutMs, name);
-  } catch (_e) {
-    const e = _e;
-    throw new Error(`Unknown tool or handler failed: ${name} (${(e as Error).message})`);
+  } catch (error) {
+    throw new Error(
+      `Unknown tool or handler failed: ${name} (${error instanceof Error ? error.message : 'Unknown error'})`
+    );
   }
 }
 
-function resolvePath(obj: any, path: string): any {
+function resolvePath(obj: Record<string, unknown>, path: string): unknown {
   if (!obj) return undefined;
   if (!path) return undefined;
   const parts = path.split('.');
-  let cur = obj;
+  let cur: unknown = obj;
   for (const p of parts) {
-    if (cur == null) return undefined;
-    cur = cur[p];
+    if (cur == null || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[p];
   }
   return cur;
 }
 
 export function renderTemplate(
   template: string,
-  ctx: { memory: Record<string, any>; variables: Record<string, any> }
+  ctx: { memory: Record<string, unknown>; variables: Record<string, unknown> }
 ) {
   if (!template) return '';
   return template.replace(/\${([^}]+)}/g, (_, expr: string) => {
@@ -98,7 +100,6 @@ export function renderTemplate(
     if (parts[0] === 'variables' || parts[0] === '$') {
       return String(resolvePath(ctx.variables, parts.slice(1).join('.')) ?? '');
     }
-    // fallback: try variables then memory
     const v = resolvePath(ctx.variables, expr);
     if (v !== undefined) return String(v);
     const m = resolvePath(ctx.memory, expr);
@@ -106,5 +107,3 @@ export function renderTemplate(
     return '';
   });
 }
-
-export default { invokeOllama, registerTool, invokeTool, renderTemplate };

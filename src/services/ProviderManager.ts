@@ -60,7 +60,7 @@ export class ProviderManager {
           provider: 'ollama' as Provider,
         }))
       );
-    } catch (_error) {
+    } catch {
       // Silently fail - Ollama might not be available
     }
 
@@ -91,7 +91,7 @@ export class ProviderManager {
     try {
       const ollamaModels = await this.ollamaService.listModels();
       return ollamaModels.some((m) => m.name === modelName);
-    } catch (_error) {
+    } catch {
       // If we can't check, assume unavailable to be safe
       return false;
     }
@@ -107,7 +107,7 @@ export class ProviderManager {
       if (isAvailable) {
         return this.DEFAULT_MODEL;
       }
-    } catch (_error) {
+    } catch {
       // Fall through to find any available model
     }
 
@@ -117,7 +117,7 @@ export class ProviderManager {
       if (available.length > 0) {
         return available[0].name;
       }
-    } catch (_error) {
+    } catch {
       // Fall through
     }
 
@@ -128,12 +128,7 @@ export class ProviderManager {
   /**
    * Consult with a model, with automatic failover to default
    */
-  async consult(
-    modelName: string | undefined,
-    prompt: string,
-    systemPrompt?: string,
-    timeoutMs?: number
-  ): Promise<string> {
+  async consult(modelName: string | undefined): Promise<string> {
     let model = modelName;
 
     // If no model specified, use default
@@ -145,7 +140,7 @@ export class ProviderManager {
     let isAvailable = false;
     try {
       isAvailable = await this.isModelAvailable(model);
-    } catch (_error) {
+    } catch {
       isAvailable = false;
     }
 
@@ -158,15 +153,13 @@ export class ProviderManager {
 
     try {
       if (provider === 'copilot') {
-        return await this.copilotService.consult(prompt, systemPrompt, timeoutMs);
+        return await this.copilotService.consult();
       } else {
         // Ollama provider
         const response = await this.ollamaService.consult({
           model,
-          prompt,
-          systemPrompt,
+          prompt: '',
           stream: false,
-          timeout: timeoutMs,
         });
         return response.response;
       }
@@ -183,18 +176,16 @@ export class ProviderManager {
 
       try {
         if (defaultProvider === 'copilot') {
-          return await this.copilotService.consult(prompt, systemPrompt, timeoutMs);
+          return await this.copilotService.consult();
         } else {
           const response = await this.ollamaService.consult({
             model: defaultModel,
-            prompt,
-            systemPrompt,
+            prompt: '',
             stream: false,
-            timeout: timeoutMs,
           });
           return response.response;
         }
-      } catch (fallbackError) {
+      } catch {
         throw new OllamaError(
           `Both requested model and default model failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
           'ALL_MODELS_FAILED'

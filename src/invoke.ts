@@ -6,16 +6,23 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const DEFAULT_TOOL_TIMEOUT_MS = Number(process.env.MCP_TOOL_TIMEOUT_MS || 10000);
 
 export async function invokeOllama(model: string, prompt: string, system?: string): Promise<any> {
-  const resp = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
-    model,
-    prompt,
-    system,
-    stream: false,
-  });
+  // Use direct Ollama call for backward compatibility
+  // The ProviderManager is used at the handler level, not here
+  try {
+    const resp = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
+      model,
+      prompt,
+      system,
+      stream: false,
+    });
 
-  if (!resp || !resp.data) throw new Error('No response from Ollama');
-  // Ollama shape: { response: "..." }
-  return resp.data.response;
+    if (!resp || !resp.data) throw new Error('No response from Ollama');
+    // Ollama shape: { response: "..." }
+    return resp.data.response;
+  } catch (error) {
+    // Re-throw to let caller handle it
+    throw error;
+  }
 }
 
 const toolRegistry: Record<string, (args: any) => Promise<any>> = {};

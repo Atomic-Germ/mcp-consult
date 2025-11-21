@@ -5,6 +5,7 @@ Welcome! This guide helps AI models understand how to effectively use the mcp-co
 ## What is mcp-consult?
 
 A Model Context Protocol (MCP) server that lets you:
+
 - 🤖 Consult with local Ollama AI models
 - 🔄 Compare responses from multiple models
 - 💾 Store and retrieve context across sessions
@@ -17,12 +18,14 @@ A Model Context Protocol (MCP) server that lets you:
 Ask a specific Ollama model a question.
 
 **Parameters:**
+
 - `prompt` (required): Your question
 - `model` (optional): Model name (e.g., "llama3.2", "qwen2.5-coder:7b")
 - `system_prompt` (optional): System instruction to guide the model
 - `temperature` (optional): Creativity level (0.0 = focused, 2.0 = creative)
 
 **Example:**
+
 ```json
 {
   "tool": "consult_ollama",
@@ -36,6 +39,7 @@ Ask a specific Ollama model a question.
 ```
 
 **Response Format:**
+
 ```json
 {
   "content": [
@@ -56,6 +60,7 @@ Get a list of all models running on the local Ollama instance.
 **Parameters:** None
 
 **Example:**
+
 ```json
 {
   "tool": "list_ollama_models",
@@ -73,11 +78,13 @@ Returns a JSON array of available models with their names and sizes.
 Ask multiple models the same question and compare their responses.
 
 **Parameters:**
+
 - `models` (required): Array of model names
 - `prompt` (required): The question
 - `context` (optional): Additional context
 
 **Example:**
+
 ```json
 {
   "tool": "compare_ollama_responses",
@@ -102,11 +109,13 @@ Returns an array of responses, one per model. If a model fails, you'll see which
 Save context that persists for the rest of the session.
 
 **Parameters:**
+
 - `key` (required): A unique identifier
 - `value` (required): The data to store
 - `metadata` (optional): Extra information about the data
 
 **Example:**
+
 ```json
 {
   "tool": "remember_context",
@@ -146,6 +155,7 @@ If something goes wrong, the response will include `isError: true`:
 ## Tips for Best Results
 
 ### 1. Use System Prompts Wisely
+
 ```json
 {
   "system_prompt": "You are an expert in cloud architecture. Be concise but thorough."
@@ -153,18 +163,23 @@ If something goes wrong, the response will include `isError: true`:
 ```
 
 ### 2. Adjust Temperature for Your Needs
+
 - **0.0-0.5**: Focused, factual answers (good for technical questions)
 - **0.7**: Balanced (good for general questions)
 - **1.0-2.0**: Creative, diverse answers (good for brainstorming)
 
 ### 3. Compare Models for Complex Questions
+
 Use `compare_ollama_responses` when you need:
+
 - Multiple perspectives
 - Cross-validation of answers
 - Comprehensive analysis
 
 ### 4. Build on Stored Context
+
 Use `remember_context` to:
+
 - Maintain project state across tool calls
 - Share information between different consultations
 - Build context chains for complex reasoning

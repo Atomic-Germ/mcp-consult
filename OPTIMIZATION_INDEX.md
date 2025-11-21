@@ -65,20 +65,21 @@ The mcp-consult server was optimized across 6 key dimensions:
 
 ## 📊 Results
 
-| Metric | Status |
-|--------|--------|
-| **Tests Passing** | ✅ 47/47 (100%) |
-| **Build** | ✅ No errors |
-| **Type Checking** | ✅ All strict checks pass |
-| **Backward Compatibility** | ✅ Zero breaking changes |
-| **Performance** | ✅ No regression |
-| **Code Quality** | ✅ Excellent |
+| Metric                     | Status                    |
+| -------------------------- | ------------------------- |
+| **Tests Passing**          | ✅ 47/47 (100%)           |
+| **Build**                  | ✅ No errors              |
+| **Type Checking**          | ✅ All strict checks pass |
+| **Backward Compatibility** | ✅ Zero breaking changes  |
+| **Performance**            | ✅ No regression          |
+| **Code Quality**           | ✅ Excellent              |
 
 ---
 
 ## 🔄 Changed Files
 
 ### Core Improvements
+
 - `src/handlers/callToolHandler.ts` - Error handling, validation, types
 - `src/handlers/ConsultOllamaHandler.ts` - Type safety, parameter handling
 - `src/handlers/listToolsHandler.ts` - Tool schemas, descriptions
@@ -92,16 +93,19 @@ The mcp-consult server was optimized across 6 key dimensions:
 ## 🎓 For Different Users
 
 ### 👨‍💻 For Developers
+
 - Start with [README.md](README.md) for setup
 - Read [OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md) for technical details
 - Review code changes in the 7 modified files above
 
 ### 🤖 For AI Models
+
 - Read [MODEL_GUIDE.md](MODEL_GUIDE.md) for usage
 - Review tool schemas and parameters
 - Follow error handling examples
 
 ### 👔 For Operations/Managers
+
 - Check test results: 47/47 passing ✅
 - No breaking changes - safe to deploy
 - See performance: zero regression
@@ -129,13 +133,13 @@ The mcp-consult server was optimized across 6 key dimensions:
 
 ## ✨ Key Achievements
 
-| Achievement | Impact |
-|-------------|--------|
-| 99% cleaner output | Better model experience |
-| 100% type safe | Fewer bugs, better IDE support |
-| 47/47 tests passing | High confidence in quality |
-| Zero breaking changes | Safe deployment |
-| Better documentation | Easier to use and understand |
+| Achievement           | Impact                         |
+| --------------------- | ------------------------------ |
+| 99% cleaner output    | Better model experience        |
+| 100% type safe        | Fewer bugs, better IDE support |
+| 47/47 tests passing   | High confidence in quality     |
+| Zero breaking changes | Safe deployment                |
+| Better documentation  | Easier to use and understand   |
 
 ---
 

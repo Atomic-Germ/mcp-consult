@@ -2,6 +2,7 @@ import { ValidationError } from '../types/index.js';
 
 export interface ConfigOptions {
   ollamaBaseUrl?: string;
+  copilotApiKey?: string;
   defaultModel?: string;
   timeout?: number;
   maxRetries?: number;
@@ -9,6 +10,7 @@ export interface ConfigOptions {
 
 export class ConfigManager {
   private ollamaBaseUrl: string;
+  private copilotApiKey: string | null;
   private defaultModel: string;
   private timeout: number;
   private maxRetries: number;
@@ -17,7 +19,9 @@ export class ConfigManager {
     this.ollamaBaseUrl = this.validateUrl(
       options.ollamaBaseUrl || process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
     );
-    this.defaultModel = options.defaultModel || process.env.OLLAMA_DEFAULT_MODEL || 'llama2';
+    this.copilotApiKey = options.copilotApiKey || process.env.COPILOT_API_KEY || null;
+    this.defaultModel =
+      options.defaultModel || process.env.OLLAMA_DEFAULT_MODEL || 'Impulse2000/smollm3:latest';
     this.timeout = this.validateTimeout(options.timeout || 60000);
     this.maxRetries = this.validateMaxRetries(options.maxRetries || 3);
   }
@@ -50,6 +54,14 @@ export class ConfigManager {
 
   getOllamaBaseUrl(): string {
     return this.ollamaBaseUrl;
+  }
+
+  getCopilotApiKey(): string | null {
+    return this.copilotApiKey;
+  }
+
+  isCopilotAvailable(): boolean {
+    return this.copilotApiKey !== null && this.copilotApiKey.length > 0;
   }
 
   getDefaultModel(): string {

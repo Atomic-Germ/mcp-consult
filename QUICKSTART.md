@@ -35,7 +35,7 @@ curl http://localhost:11434/api/tags
 Edit your configuration file:
 
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **Linux**: `~/.config/claude/claude_desktop_config.json`
 
 Add the server:
@@ -57,6 +57,7 @@ Add the server:
 ### Other MCP Clients
 
 Use these connection details:
+
 - **Command**: `node`
 - **Args**: `["/path/to/mcp-consult/dist/index.js"]`
 - **Protocol**: stdio
@@ -82,7 +83,7 @@ Try these example prompts in Claude:
 ### Basic Consultation
 
 ```
-Use the consult_ollama tool to ask llama3.2: 
+Use the consult_ollama tool to ask llama3.2:
 "What are the benefits of microservices architecture?"
 ```
 

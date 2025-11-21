@@ -1,7 +1,6 @@
 import { BaseHandler } from './BaseHandler.js';
-import { OllamaService } from '../services/OllamaService.js';
-import { ModelValidator } from '../services/ModelValidator.js';
-import { ConsultRequest } from '../types/index.js';
+import { ProviderManager } from '../services/ProviderManager.js';
+import { ConfigManager } from '../config/ConfigManager.js';
 
 interface MCPResponse {
   content: Array<{ type: string; text: string }>;
@@ -9,14 +8,15 @@ interface MCPResponse {
 }
 
 export class ConsultOllamaHandler extends BaseHandler {
-  private modelValidator: ModelValidator;
+  private providerManager: ProviderManager;
 
-  constructor(
-    private ollamaService: OllamaService,
-    modelValidator?: ModelValidator
-  ) {
+  constructor(providerManager?: ProviderManager, config?: ConfigManager) {
     super();
-    this.modelValidator = modelValidator || new ModelValidator(this.ollamaService.getConfig());
+    if (providerManager) {
+      this.providerManager = providerManager;
+    } else {
+      this.providerManager = new ProviderManager(config || new ConfigManager());
+    }
   }
 
   async handle(params: unknown): Promise<MCPResponse> {
@@ -27,59 +27,21 @@ export class ConsultOllamaHandler extends BaseHandler {
       // Validate required parameters
       this.validateRequired(typedParams, ['prompt']);
 
-      let model = (typedParams.model as string) || '';
+      const model = (typedParams.model as string) || '';
+      const prompt = typedParams.prompt as string;
+      const systemPrompt = (typedParams.system_prompt as string) || undefined;
+      const temperature = (typedParams.temperature as number) || undefined;
+      const timeoutMs = (typedParams.timeout_ms as number) || undefined;
 
-      // If no model specified or model is unavailable, use default
-      if (!model) {
-        model = await this.modelValidator.getDefaultModel();
-      } else {
-        const isAvailable = await this.modelValidator.isModelAvailable(model);
-        if (!isAvailable) {
-          const suggestions = await this.modelValidator.getSuggestions(3);
-          const defaultModel = await this.modelValidator.getDefaultModel();
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Model '${model}' is not available. Using default model: ${defaultModel}. Available models: ${suggestions.join(', ')}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-      }
-
-      // Build consult request
-      const request: ConsultRequest = {
-        model,
-        prompt: typedParams.prompt as string,
-        stream: false,
-      };
-
-      // Include system prompt if provided
-      if (typedParams.system_prompt) {
-        request.systemPrompt = typedParams.system_prompt as string;
-      }
-
-      // Include temperature if provided
-      if (typeof typedParams.temperature === 'number') {
-        request.temperature = typedParams.temperature;
-      }
-
-      // Include timeout if provided
-      if (typeof typedParams.timeout_ms === 'number') {
-        request.timeout = typedParams.timeout_ms;
-      }
-
-      // Call Ollama service
-      const response = await this.ollamaService.consult(request);
+      // Consult with the provider manager (handles model validation and failover)
+      const response = await this.providerManager.consult(model, prompt, systemPrompt, timeoutMs);
 
       // Return formatted response
       return {
         content: [
           {
             type: 'text',
-            text: response.response,
+            text: response,
           },
         ],
       };
@@ -90,7 +52,7 @@ export class ConsultOllamaHandler extends BaseHandler {
         content: [
           {
             type: 'text',
-            text: `Error consulting Ollama: ${message}`,
+            text: `Error consulting model: ${message}`,
           },
         ],
         isError: true,

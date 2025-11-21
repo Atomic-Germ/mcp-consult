@@ -193,13 +193,13 @@ Server       Fallback       Config        Variables
 
 ### Available Tools
 
-| Tool | Handler | Purpose |
-|------|---------|---------|
-| `consult_ollama` | ConsultOllamaHandler | Single model consultation |
-| `list_ollama_models` | ConsultOllamaHandler | Model enumeration |
-| `compare_ollama_models` | ConsultOllamaHandler | Multi-model comparison |
-| `remember_consult` | Memory system | Persistent storage |
-| `sequential_consultation_chain` | flowParser + handlers | Multi-step reasoning |
+| Tool                            | Handler               | Purpose                   |
+| ------------------------------- | --------------------- | ------------------------- |
+| `consult_ollama`                | ConsultOllamaHandler  | Single model consultation |
+| `list_ollama_models`            | ConsultOllamaHandler  | Model enumeration         |
+| `compare_ollama_models`         | ConsultOllamaHandler  | Multi-model comparison    |
+| `remember_consult`              | Memory system         | Persistent storage        |
+| `sequential_consultation_chain` | flowParser + handlers | Multi-step reasoning      |
 
 ### Tool Schema Management
 
@@ -268,6 +268,7 @@ Tools are defined with:
 - **Memory Tests**: All memory backend scenarios
 
 **Coverage Targets:**
+
 - Handlers: >90%
 - Services: >85%
 - Overall: >75%
@@ -308,7 +309,7 @@ Tools are defined with:
 # Ollama Configuration
 OLLAMA_BASE_URL=http://localhost:11434
 
-# Memory Configuration  
+# Memory Configuration
 MEMORY_DIR=/tmp/mcp-consult-memory
 REMEMBER_MCP_CONFIG='{"type":"stdio","command":"node","args":["memory-server.js"]}'
 MEMORY_MCP_CMD=node

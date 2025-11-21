@@ -6,12 +6,12 @@ import {
   CallToolResult,
 } from '@modelcontextprotocol/sdk/types.js';
 import { ConfigManager } from './config/ConfigManager.js';
-import { OllamaService } from './services/OllamaService.js';
+import { ProviderManager } from './services/ProviderManager.js';
 import { listToolsHandler } from './handlers/listToolsHandler.js';
 import { callToolHandler } from './handlers/callToolHandler.js';
 
 const config = new ConfigManager();
-const ollamaService = new OllamaService(config);
+const providerManager = new ProviderManager(config);
 const sessionContext = new Map<string, unknown>();
 
 const server = new Server({
@@ -25,7 +25,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request): Promise<CallToolResult> => {
-  const handler = callToolHandler(ollamaService, sessionContext);
+  const handler = callToolHandler(config, sessionContext, providerManager);
   return (await handler.handle(request as unknown as any)) as CallToolResult;
 });
 

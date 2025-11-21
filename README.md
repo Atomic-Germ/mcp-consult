@@ -14,7 +14,7 @@ MCP Ollama Consult is a Model Context Protocol (MCP) server that enables AI agen
 ### Key Features
 
 - 🤝 **Multi-Model Consultation** - Consult with any available Ollama model
-- 📊 **Model Comparison** - Run identical prompts against multiple models simultaneously  
+- 📊 **Model Comparison** - Run identical prompts against multiple models simultaneously
 - 🧠 **Sequential Reasoning Chains** - Execute complex multi-step reasoning workflows
 - 💾 **Persistent Memory** - Store and retrieve consultation results across sessions
 - 🔗 **Flexible Integration** - Works with any MCP-compatible client or framework
@@ -90,7 +90,7 @@ npm run demo
 
 ```typescript
 {
-  "tool": "compare_ollama_models", 
+  "tool": "compare_ollama_models",
   "arguments": {
     "prompt": "What are the trade-offs of NoSQL vs SQL databases?",
     "models": ["llama3.2", "qwen2.5-coder:7b", "deepseek-v3.1"]
@@ -107,12 +107,12 @@ npm run demo
     "consultants": [
       {
         "id": "analyst",
-        "model": "llama3.2", 
+        "model": "llama3.2",
         "prompt": "Analyze the security implications of this API design: {code}",
         "timeoutMs": 120000
       },
       {
-        "id": "architect", 
+        "id": "architect",
         "model": "qwen2.5-coder:7b",
         "prompt": "Based on the analysis from {analyst}, suggest architectural improvements",
         "timeoutMs": 180000
@@ -128,7 +128,7 @@ npm run demo
 # Ollama server endpoint (default: http://localhost:11434)
 OLLAMA_BASE_URL=http://your-ollama-server:11434
 
-# Memory storage directory (default: /tmp/mcp-consult-memory)  
+# Memory storage directory (default: /tmp/mcp-consult-memory)
 MEMORY_DIR=/custom/memory/path
 
 # Memory MCP server configuration
@@ -141,7 +141,7 @@ The `remember_consult` tool supports flexible memory backend configuration. It a
 
 1. **REMEMBER_MCP_CONFIG** environment variable (JSON config)
 2. **VS Code mcp.json** entries (auto-detects `remember`/`memory` servers)
-3. **MEMORY_MCP_CMD/MEMORY_MCP_ARGS** environment variables  
+3. **MEMORY_MCP_CMD/MEMORY_MCP_ARGS** environment variables
 4. **Local file fallback** at `MEMORY_DIR` (default: `/tmp/mcp-consult-memory`)
 
 #### Example Memory Server Configuration
@@ -152,6 +152,7 @@ REMEMBER_MCP_CONFIG='{"type":"stdio","command":"/usr/bin/node","args":["/path/to
 ```
 
 VS Code `mcp.json` (automatically detected):
+
 ```json
 {
   "mcpServers": {
@@ -170,6 +171,7 @@ VS Code `mcp.json` (automatically detected):
 Consult with a specific Ollama model.
 
 **Parameters:**
+
 - `prompt` (required): The consultation prompt
 - `model` (required): Ollama model name (e.g., "llama3.2")
 - `context` (optional): Additional context for the consultation
@@ -185,6 +187,7 @@ List all available models on the Ollama instance.
 Run the same prompt against multiple models for comparison.
 
 **Parameters:**
+
 - `prompt` (required): The prompt to send to all models
 - `models` (required): Array of model names to compare
 - `context` (optional): Shared context for all models
@@ -194,6 +197,7 @@ Run the same prompt against multiple models for comparison.
 Store consultation results in persistent memory.
 
 **Parameters:**
+
 - `key` (required): Unique identifier for the memory entry
 - `value` (required): Content to store
 - `metadata` (optional): Additional context about the stored data
@@ -203,6 +207,7 @@ Store consultation results in persistent memory.
 Execute multi-step reasoning chains where consultants build on previous responses.
 
 **Parameters:**
+
 - `consultants` (required): Array of consultant configurations
   - `id` (required): Unique consultant identifier
   - `model` (required): Ollama model name
@@ -217,7 +222,7 @@ Execute multi-step reasoning chains where consultants build on previous response
 mcp-consult/
 ├── src/
 │   ├── index.ts              # Main entry point
-│   ├── handlers.ts           # Tool request handlers  
+│   ├── handlers.ts           # Tool request handlers
 │   ├── services/
 │   │   ├── OllamaService.ts  # Ollama API integration
 │   │   └── MemoryService.ts  # Memory management
@@ -237,7 +242,7 @@ npm test
 # Run with coverage
 npm run test:coverage
 
-# Watch mode  
+# Watch mode
 npm run test:watch
 
 # Run demo client
@@ -267,7 +272,7 @@ Configure timeouts based on task complexity:
   "consultants": [
     {
       "id": "analyzer",
-      "model": "deepseek-v3.1:671b-cloud", 
+      "model": "deepseek-v3.1:671b-cloud",
       "prompt": "Analyze this complex codebase...",
       "timeoutMs": 180000
     }
@@ -276,6 +281,7 @@ Configure timeouts based on task complexity:
 ```
 
 **Recommended timeouts:**
+
 - Simple queries: 60-90 seconds
 - Code generation: 180-300 seconds
 - Complex analysis: 300-600 seconds
@@ -289,7 +295,7 @@ For detailed examples, see [sequential_chain_demos.md](./sequential_chain_demos.
 MCP Consult works seamlessly with other MCP servers:
 
 - **mcp-optimist** - Code optimization and analysis
-- **mcp-tdd** - Test-driven development workflows  
+- **mcp-tdd** - Test-driven development workflows
 - **Memory servers** - Persistent data storage
 - **Code analysis tools** - Static analysis integration
 
@@ -348,7 +354,7 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 ## Links
 
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/docs)
-- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) 
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [Ollama](https://ollama.ai/)
 
 ---

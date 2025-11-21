@@ -1,7 +1,8 @@
 import { BaseHandler } from './BaseHandler.js';
 import { ConsultOllamaHandler } from './ConsultOllamaHandler.js';
-import { ModelValidator } from '../services/ModelValidator.js';
-import type { OllamaService } from '../services/OllamaService.js';
+import { ProviderManager } from '../services/ProviderManager.js';
+import { ConfigManager } from '../config/ConfigManager.js';
+import { OllamaService } from '../services/OllamaService.js';
 
 interface CallToolRequest {
   params: {
@@ -16,15 +17,17 @@ interface ToolResponse {
 }
 
 export class CallToolHandler extends BaseHandler {
-  private ollamaService: OllamaService;
+  private providerManager: ProviderManager;
   private sessionContext: Map<string, unknown>;
-  private modelValidator: ModelValidator;
 
-  constructor(ollamaService: OllamaService, sessionContext: Map<string, unknown>) {
+  constructor(
+    config: ConfigManager,
+    sessionContext: Map<string, unknown>,
+    providerManager?: ProviderManager
+  ) {
     super();
-    this.ollamaService = ollamaService;
     this.sessionContext = sessionContext;
-    this.modelValidator = new ModelValidator(this.ollamaService.getConfig());
+    this.providerManager = providerManager || new ProviderManager(config);
   }
 
   async handle(request: CallToolRequest): Promise<ToolResponse> {
@@ -32,35 +35,44 @@ export class CallToolHandler extends BaseHandler {
 
     switch (name) {
       case 'consult_ollama': {
-        const handler = new ConsultOllamaHandler(this.ollamaService, this.modelValidator);
+        const handler = new ConsultOllamaHandler(this.providerManager);
         return await handler.handle(args);
       }
 
       case 'list_ollama_models': {
         try {
-          const available = await this.modelValidator.getAvailableModels();
+          const available = await this.providerManager.getAvailableModels();
           if (available.length === 0) {
             return {
               content: [
                 {
                   type: 'text',
-                  text: 'No models available. Please install a model locally or use a cloud-based model (e.g., qwen2.5-coder:7b-cloud)',
+                  text: 'No models available. Please ensure Ollama is running or set COPILOT_API_KEY environment variable.',
                 },
               ],
               isError: true,
             };
           }
 
-          const modelNames = available.map((m) => m.name);
+          const modelsByProvider = available.reduce(
+            (acc, m) => {
+              if (!acc[m.provider]) acc[m.provider] = [];
+              acc[m.provider].push(m.name);
+              return acc;
+            },
+            {} as Record<string, string[]>
+          );
+
           return {
             content: [
               {
                 type: 'text',
                 text: JSON.stringify(
                   {
-                    models: modelNames,
-                    count: modelNames.length,
-                    note: 'These are available models (installed locally or cloud-based)',
+                    models: available.map((m) => m.name),
+                    byProvider: modelsByProvider,
+                    count: available.length,
+                    note: 'Available models across all providers (Ollama, Copilot)',
                   },
                   null,
                   2
@@ -84,7 +96,11 @@ export class CallToolHandler extends BaseHandler {
 
       case 'compare_ollama_responses': {
         try {
-          const { models, prompt, context = {} } = args as {
+          const {
+            models,
+            prompt,
+            context = {},
+          } = args as {
             models: string[];
             prompt: string;
             context?: unknown;
@@ -108,14 +124,16 @@ export class CallToolHandler extends BaseHandler {
             const available = await Promise.all(
               models.map(async (m) => ({
                 model: m,
-                isAvailable: await this.modelValidator.isModelAvailable(m),
+                isAvailable: await this.providerManager.isModelAvailable(m),
               }))
             );
 
             modelsToUse = available.filter((m) => m.isAvailable).map((m) => m.model);
 
             if (modelsToUse.length === 0) {
-              const suggestions = await this.modelValidator.getSuggestions(3);
+              const suggestions = await this.providerManager
+                .getAvailableModels()
+                .then((m) => m.slice(0, 3).map((x) => x.name));
               return {
                 content: [
                   {
@@ -128,7 +146,7 @@ export class CallToolHandler extends BaseHandler {
             }
           } else {
             // Use available models if not specified
-            const available = await this.modelValidator.getAvailableModels();
+            const available = await this.providerManager.getAvailableModels();
             modelsToUse = available.slice(0, 2).map((m) => m.name);
 
             if (modelsToUse.length === 0) {
@@ -146,7 +164,7 @@ export class CallToolHandler extends BaseHandler {
 
           const results = await Promise.allSettled(
             modelsToUse.map(async (model: string) => {
-              const handler = new ConsultOllamaHandler(this.ollamaService, this.modelValidator);
+              const handler = new ConsultOllamaHandler(this.providerManager);
               const result = await handler.handle({ model, prompt, context });
               return {
                 model,
@@ -248,6 +266,7 @@ export class CallToolHandler extends BaseHandler {
 }
 
 export const callToolHandler = (
-  ollamaService: OllamaService,
-  sessionContext: Map<string, unknown>
-) => new CallToolHandler(ollamaService, sessionContext);
+  config: ConfigManager,
+  sessionContext: Map<string, unknown>,
+  providerManager?: ProviderManager
+) => new CallToolHandler(config, sessionContext, providerManager);

@@ -54,7 +54,8 @@ export class ListToolsHandler extends BaseHandler {
               },
               timeout_ms: {
                 type: 'number',
-                description: 'Request timeout in milliseconds (default: 60000). Increase for complex prompts with system prompts (e.g., 120000-300000 for complex reasoning)',
+                description:
+                  'Request timeout in milliseconds (default: 60000). Increase for complex prompts with system prompts (e.g., 120000-300000 for complex reasoning)',
               },
             },
             required: ['prompt'],
@@ -62,7 +63,8 @@ export class ListToolsHandler extends BaseHandler {
         },
         {
           name: 'list_ollama_models',
-          description: 'List all available Ollama models on the local system (installed or cloud-based)',
+          description:
+            'List all available Ollama models on the local system (installed or cloud-based)',
           inputSchema: {
             type: 'object',
             properties: {},

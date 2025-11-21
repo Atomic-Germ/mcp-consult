@@ -5,6 +5,7 @@ Thank you for your interest in contributing to MCP-Consult! This document provid
 ## 🎯 Project Goals
 
 MCP-Consult aims to provide a high-quality MCP server for consulting with Ollama models, featuring:
+
 - Clean, maintainable code (complexity < 10 per function)
 - Comprehensive test coverage (70%+ target)
 - Professional documentation
@@ -14,6 +15,7 @@ MCP-Consult aims to provide a high-quality MCP server for consulting with Ollama
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 20+
 - pnpm (recommended) or npm
 - Ollama running locally (for testing)
@@ -55,6 +57,7 @@ git checkout -b fix/your-bug-fix
 ### 2. Make Your Changes
 
 Follow our coding standards:
+
 - **Complexity**: Keep functions under 10 cyclomatic complexity
 - **Formatting**: Use Prettier (`pnpm format`)
 - **Linting**: Follow ESLint rules (`pnpm lint`)
@@ -92,6 +95,7 @@ git commit -m "test: add handler tests"
 ```
 
 **Commit Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `refactor`: Code refactoring
@@ -108,6 +112,7 @@ git push origin feature/your-feature-name
 ```
 
 Then create a Pull Request on GitHub with:
+
 - Clear description of changes
 - Link to related issues
 - Screenshots (if applicable)
@@ -139,6 +144,7 @@ describe('yourFunction', () => {
 ### Test Coverage Requirements
 
 Minimum coverage thresholds:
+
 - **Branches**: 30% (current), 60% (target)
 - **Functions**: 45% (current), 70% (target)
 - **Lines**: 40% (current), 70% (target)
@@ -219,8 +225,8 @@ function processData(data: any) {
 // ✅ Good: Low complexity, early returns
 function processData(data: Data): Result {
   if (!data?.items) return emptyResult();
-  
-  const validItems = data.items.filter(item => item.valid);
+
+  const validItems = data.items.filter((item) => item.valid);
   return processValidItems(validItems);
 }
 
@@ -257,6 +263,7 @@ mcp-consult/
 When adding a new tool handler:
 
 1. **Create interface** (if using new pattern):
+
 ```typescript
 // src/handlers/base/ToolHandler.ts
 export interface ToolHandler {
@@ -266,6 +273,7 @@ export interface ToolHandler {
 ```
 
 2. **Implement handler**:
+
 ```typescript
 // src/handlers/YourHandler.ts
 export class YourHandler implements ToolHandler {
@@ -281,6 +289,7 @@ export class YourHandler implements ToolHandler {
 ```
 
 3. **Add tests**:
+
 ```typescript
 // test/yourHandler.test.ts
 describe('YourHandler', () => {
@@ -292,6 +301,7 @@ describe('YourHandler', () => {
 ```
 
 4. **Register handler**:
+
 ```typescript
 // src/registry/HandlerRegistry.ts
 registry.set('your_tool', new YourHandler());
@@ -302,22 +312,26 @@ registry.set('your_tool', new YourHandler());
 ### Avoid Common Pitfalls
 
 **1. Nested Loops (O(n²))**
+
 ```typescript
 // ❌ Bad: O(n²)
 for (const item of items) {
   for (const other of items) {
-    if (item.id === other.ref) { /* ... */ }
+    if (item.id === other.ref) {
+      /* ... */
+    }
   }
 }
 
 // ✅ Good: O(n)
-const itemMap = new Map(items.map(i => [i.id, i]));
+const itemMap = new Map(items.map((i) => [i.id, i]));
 for (const item of items) {
   const referenced = itemMap.get(item.ref);
 }
 ```
 
 **2. String Concatenation in Loops**
+
 ```typescript
 // ❌ Bad: Creates new string each iteration
 let result = '';
@@ -326,21 +340,22 @@ for (const item of items) {
 }
 
 // ✅ Good: Single allocation
-const parts = items.map(i => i.text);
+const parts = items.map((i) => i.text);
 const result = parts.join('');
 ```
 
 **3. Inefficient Array Operations**
+
 ```typescript
 // ❌ Bad: Multiple passes
-const filtered = items.filter(i => i.active);
-const mapped = filtered.map(i => i.value);
+const filtered = items.filter((i) => i.active);
+const mapped = filtered.map((i) => i.value);
 const result = mapped.join(',');
 
 // ✅ Good: Single pass
 const result = items
-  .filter(i => i.active)
-  .map(i => i.value)
+  .filter((i) => i.active)
+  .map((i) => i.value)
   .join(',');
 ```
 
@@ -371,16 +386,16 @@ node dist/demo-client.js consult "your question"
 
 Use JSDoc for public APIs:
 
-```typescript
+````typescript
 /**
  * Consults an Ollama model with a prompt.
- * 
+ *
  * @param model - The Ollama model to use
  * @param prompt - The prompt to send
  * @param systemPrompt - Optional system prompt
  * @returns The model's response
  * @throws {Error} If the request fails
- * 
+ *
  * @example
  * ```typescript
  * const response = await consultOllama('llama2', 'Hello!');
@@ -394,11 +409,12 @@ export async function consultOllama(
 ): Promise<string> {
   // Implementation
 }
-```
+````
 
 ### README Updates
 
 When adding features:
+
 1. Update feature list
 2. Add usage examples
 3. Update configuration docs
@@ -418,6 +434,7 @@ git push origin v1.1.0
 ```
 
 The CI/CD pipeline will:
+
 - Run lint, tests, and build
 - Create GitHub release
 - Publish to npm (if configured)

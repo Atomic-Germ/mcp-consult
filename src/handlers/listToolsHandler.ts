@@ -123,6 +123,92 @@ export class ListToolsHandler extends BaseHandler {
             required: ['key', 'value'],
           },
         },
+        // Backward-compatible alias for legacy name compare_ollama_models
+        {
+          name: 'compare_ollama_models',
+          description:
+            'Alias of compare_ollama_responses (legacy name). Run the same prompt against multiple Ollama models and return outputs side-by-side.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              models: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of model names to compare (same as compare_ollama_responses).',
+              },
+              prompt: { type: 'string', description: 'Prompt to send to all models.' },
+              system_prompt: {
+                type: 'string',
+                description: 'Optional system prompt for all models.',
+              },
+            },
+            required: ['prompt'],
+          },
+        },
+        // Backward-compatible alias for legacy memory tool remember_consult
+        {
+          name: 'remember_consult',
+          description:
+            'Alias of remember_context (legacy name). Store a consult result or arbitrary context for later retrieval.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              key: {
+                type: 'string',
+                description: 'Memory key (if omitted a key may be auto-generated downstream).',
+              },
+              prompt: { type: 'string', description: 'Associated prompt or question (optional).' },
+              model: {
+                type: 'string',
+                description: 'Model name related to the response (optional).',
+              },
+              response: { type: 'string', description: 'Response text to store.' },
+            },
+            required: ['response'],
+          },
+        },
+        // Newly reintroduced sequential chain tool per architecture docs
+        {
+          name: 'sequential_consultation_chain',
+          description:
+            'Run a sequence of consultations; each step can build on previous responses. Supports optional pass-through of accumulated context.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              consultants: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    model: { type: 'string' },
+                    prompt: { type: 'string' },
+                    systemPrompt: { type: 'string' },
+                    temperature: { type: 'number' },
+                    timeoutMs: { type: 'number' },
+                  },
+                  required: ['id', 'model', 'prompt'],
+                },
+              },
+              context: {
+                type: 'object',
+                properties: {
+                  systemPrompt: { type: 'string' },
+                  passThrough: { type: 'boolean' },
+                },
+              },
+              flowControl: {
+                type: 'object',
+                properties: {
+                  continueOnError: { type: 'boolean' },
+                  maxRetries: { type: 'number' },
+                  retryDelayMs: { type: 'number' },
+                },
+              },
+            },
+            required: ['consultants'],
+          },
+        },
       ],
     };
   }

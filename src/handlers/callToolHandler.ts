@@ -207,6 +207,12 @@ export class CallToolHandler extends BaseHandler {
         }
       }
 
+      // Backward-compatible alias for legacy name compare_ollama_models
+      case 'compare_ollama_models': {
+        // Delegate to compare_ollama_responses logic by normalizing name
+        return await this.handle({ params: { name: 'compare_ollama_responses', arguments: args } });
+      }
+
       case 'remember_context': {
         try {
           const { key, value, metadata } = args as {
@@ -245,6 +251,181 @@ export class CallToolHandler extends BaseHandler {
                 text: `Error: ${message}`,
               },
             ],
+            isError: true,
+          };
+        }
+      }
+
+      // Backward-compatible alias for legacy memory tool remember_consult
+      case 'remember_consult': {
+        // Normalize shape: response maps to value, prompt/model ignored for now but stored in metadata
+        const { key, response, prompt, model } = args as {
+          key?: string;
+          response?: string;
+          prompt?: string;
+          model?: string;
+        };
+        if (!response) {
+          return {
+            content: [{ type: 'text', text: 'Error: response is required for remember_consult' }],
+            isError: true,
+          };
+        }
+        const memoryKey = key || `consult-${Date.now()}`;
+        this.sessionContext.set(memoryKey, {
+          value: response,
+          metadata: { prompt, model, legacyTool: 'remember_consult' },
+          timestamp: Date.now(),
+        });
+        return {
+          content: [{ type: 'text', text: `Stored consult response under key: ${memoryKey}` }],
+        };
+      }
+
+      case 'sequential_consultation_chain': {
+        try {
+          const {
+            consultants,
+            context = {},
+            flowControl = {},
+          } = args as {
+            consultants: Array<{
+              id: string;
+              model: string;
+              prompt: string;
+              systemPrompt?: string;
+              temperature?: number;
+              timeoutMs?: number;
+            }>;
+            context?: { systemPrompt?: string; passThrough?: boolean };
+            flowControl?: { continueOnError?: boolean; maxRetries?: number; retryDelayMs?: number };
+          };
+
+          if (!Array.isArray(consultants) || consultants.length === 0) {
+            return {
+              content: [
+                { type: 'text', text: 'Error: consultants array is required and cannot be empty' },
+              ],
+              isError: true,
+            };
+          }
+
+          const passThrough = Boolean(context.passThrough);
+          let accumulatedContext = '';
+          const steps: Array<{
+            id: string;
+            model: string;
+            prompt: string;
+            response: string;
+            success: boolean;
+            error?: string;
+            retries: number;
+            durationMs: number;
+          }> = [];
+
+          for (const c of consultants) {
+            const start = Date.now();
+            let attempt = 0;
+            let success = false;
+            let lastError: string | undefined;
+            let finalResponse = '';
+            const basePrompt =
+              passThrough && accumulatedContext
+                ? `${accumulatedContext}\n${c.id}: ${c.prompt}`
+                : c.prompt;
+
+            while (!success && attempt <= (flowControl.maxRetries || 0)) {
+              try {
+                const handler = new ConsultOllamaHandler(this.providerManager);
+                const result = await handler.handle({
+                  model: c.model,
+                  prompt: basePrompt,
+                  system_prompt: c.systemPrompt || context.systemPrompt,
+                });
+                finalResponse = result.content[0]?.text || '';
+                success = !result.isError;
+                if (!success) lastError = 'Unknown error';
+              } catch (e) {
+                lastError = e instanceof Error ? e.message : String(e);
+              }
+              if (!success) {
+                attempt++;
+                if (attempt <= (flowControl.maxRetries || 0) && flowControl.retryDelayMs) {
+                  await new Promise((r) => setTimeout(r, flowControl.retryDelayMs));
+                }
+              }
+            }
+
+            if (success && passThrough) {
+              accumulatedContext += `${c.id}: ${c.prompt}\nResponse: ${finalResponse}\n\n`;
+            } else if (!success && passThrough && flowControl.continueOnError) {
+              accumulatedContext += `${c.id}: ${c.prompt}\nError: ${lastError}\n\n`;
+            }
+
+            if (!success && !flowControl.continueOnError) {
+              steps.push({
+                id: c.id,
+                model: c.model,
+                prompt: c.prompt,
+                response: finalResponse,
+                success: false,
+                error: lastError,
+                retries: attempt,
+                durationMs: Date.now() - start,
+              });
+              return {
+                content: [
+                  {
+                    type: 'text',
+                    text: JSON.stringify(
+                      {
+                        status: 'failed',
+                        failedStep: c.id,
+                        error: lastError,
+                        steps,
+                      },
+                      null,
+                      2
+                    ),
+                  },
+                ],
+                isError: true,
+              };
+            }
+
+            steps.push({
+              id: c.id,
+              model: c.model,
+              prompt: c.prompt,
+              response: success ? finalResponse : `[Error: ${lastError}]`,
+              success,
+              error: lastError,
+              retries: attempt,
+              durationMs: Date.now() - start,
+            });
+          }
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    status: 'completed',
+                    steps,
+                    passThrough,
+                    accumulatedContext: passThrough ? accumulatedContext : undefined,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Sequential chain failed';
+          return {
+            content: [{ type: 'text', text: `Error: ${message}` }],
             isError: true,
           };
         }

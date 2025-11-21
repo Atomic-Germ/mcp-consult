@@ -1,9 +1,11 @@
 # Quick Timeout Tuning Guide
 
 ## Problem
+
 Your Ollama consultation timeout failed: `Failed after 3 retries: The operation was aborted due to timeout`
 
 ## Solution
+
 Use the new `timeout_ms` parameter when consulting complex topics:
 
 ### ✅ Now Works - SNES Development Guide
@@ -22,11 +24,11 @@ Use the new `timeout_ms` parameter when consulting complex topics:
 
 ## What Changed
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Default timeout | 30 seconds | 60 seconds |
-| Custom timeout support | ❌ No | ✅ Yes (`timeout_ms` parameter) |
-| Max timeout allowed | 300 seconds | 600 seconds (10 minutes) |
+| Aspect                 | Before      | After                           |
+| ---------------------- | ----------- | ------------------------------- |
+| Default timeout        | 30 seconds  | 60 seconds                      |
+| Custom timeout support | ❌ No       | ✅ Yes (`timeout_ms` parameter) |
+| Max timeout allowed    | 300 seconds | 600 seconds (10 minutes)        |
 
 ## Timeout Defaults by Complexity
 
@@ -37,6 +39,7 @@ Use the new `timeout_ms` parameter when consulting complex topics:
 ## Your SNES Query
 
 The reason it timed out:
+
 - Complex multi-part question (7 categories)
 - System prompt provided (extra processing)
 - Requires detailed reasoning
@@ -45,6 +48,7 @@ The reason it timed out:
 ## Implementation
 
 Changes made to support this:
+
 1. Default timeout increased to 60s
 2. Added `timeout_ms` parameter to schema
 3. ConsultOllamaHandler now accepts and passes timeout

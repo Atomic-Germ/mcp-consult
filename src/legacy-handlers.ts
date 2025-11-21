@@ -492,7 +492,10 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           command: serverCfg.command,
           args: serverCfg.args || [],
         });
-        const client = new Client({ name: 'mcp-memory-client', version: '1.0.0' });
+        const client = new Client(
+          { name: 'mcp-memory-client', version: '1.0.0' },
+          { capabilities: {} }
+        );
 
         // limit connection time
         const conn = client.connect(transport);

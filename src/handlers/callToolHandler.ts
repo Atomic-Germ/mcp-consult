@@ -84,7 +84,11 @@ export class CallToolHandler extends BaseHandler {
 
       case 'compare_ollama_responses': {
         try {
-          const { models, prompt, context = {} } = args as {
+          const {
+            models,
+            prompt,
+            context = {},
+          } = args as {
             models: string[];
             prompt: string;
             context?: unknown;

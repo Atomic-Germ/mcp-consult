@@ -6,7 +6,7 @@ This file demonstrates real-world usage of the sequential consultation chain too
 
 **Scenario**: Review a complex function implementation through multiple expert perspectives.
 
-```typescript
+````typescript
 // Tool call for code review chain
 {
   "consultants": [
@@ -17,7 +17,7 @@ This file demonstrates real-world usage of the sequential consultation chain too
     },
     {
       "id": "security_reviewer",
-      "model": "qwen3-coder:480b-cloud", 
+      "model": "qwen3-coder:480b-cloud",
       "prompt": "Building on the previous architectural analysis, examine this function for security vulnerabilities. Consider input validation, injection attacks, data exposure, and other security concerns."
     },
     {
@@ -45,7 +45,7 @@ This file demonstrates real-world usage of the sequential consultation chain too
     "memoryKey": "code_review_process_user_data"
   }
 }
-```
+````
 
 ## Demo 2: Architecture Decision Chain
 
@@ -60,7 +60,7 @@ This file demonstrates real-world usage of the sequential consultation chain too
       "prompt": "We need to build a new notification service that handles email, SMS, and push notifications. It needs to scale to 10M notifications per day, support multiple tenants, and integrate with various providers. Analyze the requirements and suggest key architectural considerations."
     },
     {
-      "id": "patterns_expert", 
+      "id": "patterns_expert",
       "model": "deepseek-v3.1:671b-cloud",
       "prompt": "Based on the requirements analysis, evaluate different architectural patterns (Event Sourcing, CQRS, Hexagonal, Microservices, etc.) and recommend the most suitable approach for this notification service."
     },
@@ -101,7 +101,7 @@ This file demonstrates real-world usage of the sequential consultation chain too
     },
     {
       "id": "systems_specialist",
-      "model": "deepseek-v3.1:671b-cloud", 
+      "model": "deepseek-v3.1:671b-cloud",
       "prompt": "Based on the log analysis, examine the system architecture and resource utilization patterns. What infrastructure or configuration issues might be contributing to these errors?"
     },
     {
@@ -110,7 +110,7 @@ This file demonstrates real-world usage of the sequential consultation chain too
       "prompt": "Considering the log patterns and system analysis, what code-level issues could be causing these problems? Look for resource leaks, improper error handling, or concurrency issues."
     },
     {
-      "id": "solution_architect", 
+      "id": "solution_architect",
       "model": "deepseek-v3.1:671b-cloud",
       "prompt": "Synthesize all the investigation findings and provide a comprehensive solution plan with immediate fixes, monitoring improvements, and preventive measures."
     }
@@ -135,7 +135,7 @@ This file demonstrates real-world usage of the sequential consultation chain too
   "consultants": [
     {
       "id": "skill_assessor",
-      "model": "glm-4.6:cloud", 
+      "model": "glm-4.6:cloud",
       "prompt": "A mid-level Python developer wants to learn Rust. They have 5 years of Python experience, some C++ knowledge, and work primarily on web APIs. Assess their background and identify knowledge gaps for learning Rust effectively.",
       "timeoutMs": 90000
     },

@@ -19,11 +19,13 @@ When using `sequential_consultation_chain`, some steps (particularly step 2: imp
 ## What We Changed
 
 ### 1. Increased Default Timeout
+
 - **Before**: 60 seconds (60000ms)
 - **After**: 120 seconds (120000ms)
 - **Rationale**: Most complex reasoning tasks complete within 2 minutes
 
 ### 2. Per-Consultant Timeout Configuration
+
 The `timeoutMs` parameter was already supported but not well documented:
 
 ```json
@@ -40,19 +42,21 @@ The `timeoutMs` parameter was already supported but not well documented:
 ```
 
 ### 3. Documentation
+
 Added clear guidance in:
+
 - `README.md`: Quick reference for timeout configuration
 - `sequential_chain_demos.md`: Best practices and recommendations
 - Demo examples showing real-world timeout values
 
 ## Timeout Recommendations
 
-| Task Type | Recommended Timeout | Example |
-|-----------|---------------------|---------|
-| Simple analysis | 60-90 seconds | Code review, basic analysis |
-| Code generation | 180-300 seconds | Implementation, refactoring |
-| Complex reasoning | 180-300 seconds | Architecture decisions, multi-step logic |
-| Large context | 300-600 seconds | Processing extensive codebases or documentation |
+| Task Type         | Recommended Timeout | Example                                         |
+| ----------------- | ------------------- | ----------------------------------------------- |
+| Simple analysis   | 60-90 seconds       | Code review, basic analysis                     |
+| Code generation   | 180-300 seconds     | Implementation, refactoring                     |
+| Complex reasoning | 180-300 seconds     | Architecture decisions, multi-step logic        |
+| Large context     | 300-600 seconds     | Processing extensive codebases or documentation |
 
 ## Usage Example
 
@@ -67,7 +71,7 @@ Added clear guidance in:
     },
     {
       "id": "implementer",
-      "model": "deepseek-v3.1:671b-cloud", 
+      "model": "deepseek-v3.1:671b-cloud",
       "prompt": "Implement fixes based on the analysis...",
       "timeoutMs": 240000
     },
@@ -87,12 +91,15 @@ Added clear guidance in:
 ## Alternative Approaches Considered
 
 ### ❌ Breaking Questions into Smaller Parts
+
 - **Rejected**: Loses conversation context and defeats the purpose of sequential chains
 
-### ❌ Automatic Retry with Simplified Prompts  
+### ❌ Automatic Retry with Simplified Prompts
+
 - **Rejected**: May produce lower-quality results and is unpredictable
 
 ### ✅ Configurable Per-Consultant Timeouts
+
 - **Chosen**: Gives users control while maintaining context integrity
 - Allows different timeouts for different complexity levels
 - Preserves the sequential reasoning flow
@@ -100,6 +107,7 @@ Added clear guidance in:
 ## When Models Handle Timeouts by Breaking Up
 
 If a model suggests breaking up a question due to timeout:
+
 1. **Use the `timeoutMs` parameter** instead (typically 180000-300000ms for complex tasks)
 2. **Keep the sequential chain intact** to preserve context
 3. **Only break up** if the task is genuinely too large (e.g., processing 100+ files)
@@ -114,6 +122,7 @@ Duration: 187432ms
 ```
 
 If seeing consistent timeouts:
+
 1. Check if the model is under heavy load
 2. Consider using a faster model for that step
 3. Increase `timeoutMs` to 300000-600000ms
@@ -122,6 +131,7 @@ If seeing consistent timeouts:
 ## Future Considerations
 
 Potential enhancements:
+
 - Dynamic timeout adjustment based on prompt complexity
 - Streaming responses to provide progress feedback
 - Async execution with status polling

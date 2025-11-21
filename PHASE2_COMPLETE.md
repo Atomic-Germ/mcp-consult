@@ -3,6 +3,7 @@
 ## Summary
 
 Successfully refactored mcp-consult codebase with:
+
 - ✅ New type system
 - ✅ Service layer architecture
 - ✅ Bug fixes (JSON parsing)
@@ -46,13 +47,14 @@ Duration    11.50s
 
 Coverage Breakdown:
 - Type system: 4 tests ✅
-- OllamaService: 18 tests ✅  
+- OllamaService: 18 tests ✅
 - Legacy handlers: 25 tests ✅
 ```
 
 ### What Still Uses Legacy Code
 
 These files import from `legacy-handlers.ts`:
+
 - `src/index.ts` - MCP server entry point
 - `src/invoke.ts` - Tool invocation
 - `src/mcpToolRegistrar.ts` - Tool registration
@@ -63,18 +65,21 @@ These files import from `legacy-handlers.ts`:
 ## Phase 3 Roadmap
 
 ### Create Remaining Handlers
+
 1. ListModelsHandler
 2. CompareModelsHandler
 3. RememberConsultHandler
 4. SequentialChainHandler
 
 ### Full Migration
+
 - Update src/index.ts to use new handlers
 - Update invoke.ts and mcpToolRegistrar.ts
 - Migrate all tests
 - Delete legacy-handlers.ts
 
 ### Additional Services
+
 - MemoryService (extract from current inline implementation)
 - ConfigService (centralize configuration)
 
@@ -94,6 +99,7 @@ node dist/index.js
 ```
 
 ### Available Tools
+
 1. `consult_ollama` - Consult a single model
 2. `list_ollama_models` - List available models (bug fixed!)
 3. `compare_ollama_models` - Compare multiple models
@@ -103,12 +109,14 @@ node dist/index.js
 ## Benefits of New Architecture
 
 ### Before (Monolithic)
+
 - 600+ line single file
 - Mixed concerns (API, validation, formatting)
 - Hard to test individual components
 - No type safety
 
 ### After (Refactored)
+
 - Separated concerns (types, services, handlers)
 - Each component <100 lines
 - Fully tested in isolation
@@ -118,6 +126,7 @@ node dist/index.js
 ## Next Steps
 
 To complete the migration:
+
 1. **Phase 3a**: Create remaining 4 handlers (TDD approach)
 2. **Phase 3b**: Wire new handlers into index.ts
 3. **Phase 3c**: Update all imports

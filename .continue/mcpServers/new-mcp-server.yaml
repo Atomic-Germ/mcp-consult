@@ -1,0 +1,9 @@
+name: Sequential Thinking
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: Sequential Thinking
+    command: node
+    args:
+      - /home/casey/.local/share/GITS/servers/src/sequentialthinking/dist/index.js
+    env: {}

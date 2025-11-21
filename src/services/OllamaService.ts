@@ -48,13 +48,17 @@ export class OllamaService {
     this.validateConsultRequest(request);
 
     try {
-      const response = await this.makeRequest('/api/generate', {
-        model: request.model,
-        prompt: request.prompt,
-        system: request.systemPrompt,
-        temperature: request.temperature,
-        stream: false,
-      }, request.timeout);
+      const response = await this.makeRequest(
+        '/api/generate',
+        {
+          model: request.model,
+          prompt: request.prompt,
+          system: request.systemPrompt,
+          temperature: request.temperature,
+          stream: false,
+        },
+        request.timeout
+      );
 
       return response as ConsultResponse;
     } catch (error) {

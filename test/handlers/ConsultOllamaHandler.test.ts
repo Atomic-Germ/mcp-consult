@@ -16,9 +16,9 @@ describe('ConsultOllamaHandler', () => {
     } as any;
 
     mockValidator = {
-      getAvailableModels: vi.fn().mockResolvedValue([
-        { name: 'llama2', installed: true, isCloud: false },
-      ]),
+      getAvailableModels: vi
+        .fn()
+        .mockResolvedValue([{ name: 'llama2', installed: true, isCloud: false }]),
       isModelAvailable: vi.fn().mockResolvedValue(true),
       getDefaultModel: vi.fn().mockResolvedValue('llama2'),
       getSuggestions: vi.fn().mockResolvedValue(['llama2']),

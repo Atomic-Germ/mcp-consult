@@ -33,7 +33,10 @@ export class ModelValidator {
       });
 
       if (!response.ok) {
-        throw new OllamaError(`Failed to fetch models: ${response.statusText}`, 'LIST_MODELS_FAILED');
+        throw new OllamaError(
+          `Failed to fetch models: ${response.statusText}`,
+          'LIST_MODELS_FAILED'
+        );
       }
 
       const text = await response.text();
@@ -100,8 +103,6 @@ export class ModelValidator {
   }
 
   getSuggestions(count: number = 3): Promise<string[]> {
-    return this.getAvailableModels().then((models) =>
-      models.slice(0, count).map((m) => m.name)
-    );
+    return this.getAvailableModels().then((models) => models.slice(0, count).map((m) => m.name));
   }
 }

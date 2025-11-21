@@ -28,20 +28,29 @@ export class ConsultOllamaHandler extends BaseHandler {
       this.validateRequired(typedParams, ['prompt']);
 
       let model = (typedParams.model as string) || '';
+      const consultationType = typedParams.consultation_type as string | undefined;
 
-      // If no model specified or model is unavailable, use default
-      if (!model) {
+      // Auto-select model based on consultation type
+      if (consultationType === 'thinking') {
+        model = 'kimi-k2-thinking:cloud';
+      } else if (consultationType === 'instruction') {
+        model = 'qwen3-vl:235b-instruct-cloud';
+      } else if (!model) {
+        // If no model specified and no consultation type, use default
         model = await this.modelValidator.getDefaultModel();
-      } else {
+      }
+
+      // Validate model availability
+      if (model) {
         const isAvailable = await this.modelValidator.isModelAvailable(model);
         if (!isAvailable) {
           const suggestions = await this.modelValidator.getSuggestions(3);
-          const defaultModel = await this.modelValidator.getDefaultModel();
+          const typeInfo = consultationType ? ` (auto-selected for ${consultationType} consultation)` : '';
           return {
             content: [
               {
                 type: 'text',
-                text: `Model '${model}' is not available. Using default model: ${defaultModel}. Available models: ${suggestions.join(', ')}`,
+                text: `Model '${model}'${typeInfo} is not available. Available models: ${suggestions.join(', ')}. Please install the model or choose an available one.`,
               },
             ],
             isError: true,

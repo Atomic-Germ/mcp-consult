@@ -1,0 +1,10 @@
+name: Memory
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: Memory
+    command: node
+    args:
+      - /home/casey/.local/share/GITS/servers/src/memory/dist/index.js
+    env:
+      MEMORY_DIR: /home/casey/.local/share/GITS/mcp-memory/

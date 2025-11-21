@@ -11,10 +11,16 @@ export class ListToolsHandler extends BaseHandler {
           inputSchema: {
             type: 'object',
             properties: {
+              consultation_type: {
+                type: 'string',
+                enum: ['thinking', 'instruction', 'general'],
+                description:
+                  'Type of consultation: "thinking" (uses kimi-k2-thinking:cloud for reasoning tasks), "instruction" (uses qwen3-vl:235b-instruct-cloud for instruction-following), or "general" (uses specified model or default). If specified, overrides the model parameter.',
+              },
               model: {
                 type: 'string',
                 description:
-                  'Model to use (e.g., "qwen2.5-coder:7b-cloud"). If not specified, uses the first available model. Must be a cloud model (ends with :cloud or -cloud) or locally installed.',
+                  'Model to use (e.g., "qwen2.5-coder:7b-cloud"). If not specified and no consultation_type, uses the first available model. Must be a cloud model (ends with :cloud or -cloud) or locally installed.',
               },
               prompt: {
                 type: 'string',
@@ -54,7 +60,8 @@ export class ListToolsHandler extends BaseHandler {
               },
               timeout_ms: {
                 type: 'number',
-                description: 'Request timeout in milliseconds (default: 60000). Increase for complex prompts with system prompts (e.g., 120000-300000 for complex reasoning)',
+                description:
+                  'Request timeout in milliseconds (default: 60000). Increase for complex prompts with system prompts (e.g., 120000-300000 for complex reasoning)',
               },
             },
             required: ['prompt'],
@@ -62,7 +69,8 @@ export class ListToolsHandler extends BaseHandler {
         },
         {
           name: 'list_ollama_models',
-          description: 'List all available Ollama models on the local system (installed or cloud-based)',
+          description:
+            'List all available Ollama models on the local system (installed or cloud-based)',
           inputSchema: {
             type: 'object',
             properties: {},

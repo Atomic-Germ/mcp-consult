@@ -5,3 +5,4 @@ dist/
 .github/instructions/
 .DS*
 coverage/
+memory

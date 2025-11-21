@@ -431,6 +431,116 @@ export class CallToolHandler extends BaseHandler {
         }
       }
 
+      // --- Copilot specific tools ---
+      case 'consult_copilot': {
+        try {
+          const { prompt } = args as { prompt?: string };
+          if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+            return {
+              content: [{ type: 'text', text: 'Error: prompt is required for consult_copilot' }],
+              isError: true,
+            };
+          }
+          const copilotService = this.providerManager.getCopilotService();
+          if (!copilotService.isAvailable()) {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: 'Copilot unavailable: set COPILOT_API_KEY to enable this tool.',
+                },
+              ],
+              isError: true,
+            };
+          }
+          const response = await copilotService
+            .consult()
+            .catch((e) => ({ error: e instanceof Error ? e.message : String(e) }));
+          if (typeof response === 'string') {
+            return { content: [{ type: 'text', text: response }] };
+          }
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Copilot consultation not implemented: ${response.error}`,
+              },
+            ],
+            isError: true,
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'consult_copilot failed';
+          return { content: [{ type: 'text', text: `Error: ${message}` }], isError: true };
+        }
+      }
+
+      case 'list_copilot_models': {
+        const copilotService = this.providerManager.getCopilotService();
+        if (!copilotService.isAvailable()) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: 'Copilot unavailable (COPILOT_API_KEY not set). No models listed.',
+              },
+            ],
+            isError: true,
+          };
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                { models: [copilotService.getAvailableModel()], count: 1 },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+
+      case 'compare_copilot_models': {
+        const { prompt } = args as { prompt?: string };
+        if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+          return {
+            content: [
+              { type: 'text', text: 'Error: prompt is required for compare_copilot_models' },
+            ],
+            isError: true,
+          };
+        }
+        const copilotService = this.providerManager.getCopilotService();
+        if (!copilotService.isAvailable()) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: 'Copilot unavailable; cannot perform comparison.',
+              },
+            ],
+            isError: true,
+          };
+        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  note: 'Only gpt-4.1 available; no multi-model comparison performed.',
+                  model: copilotService.getAvailableModel(),
+                  status: 'placeholder',
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+
       default:
         return {
           content: [

@@ -209,6 +209,56 @@ export class ListToolsHandler extends BaseHandler {
             required: ['consultants'],
           },
         },
+        // --- Copilot tool definitions ---
+        {
+          name: 'consult_copilot',
+          description:
+            'Consult the Copilot (GPT-4.1) model. If COPILOT_API_KEY is not set, returns an availability error.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              prompt: { type: 'string', description: 'Your question or request.' },
+              system_prompt: { type: 'string', description: 'Optional system guidance.' },
+              temperature: {
+                type: 'number',
+                description: 'Sampling temperature (0-2, default 0.7).',
+              },
+              timeout_ms: { type: 'number', description: 'Optional timeout override in ms.' },
+              context: {
+                type: 'object',
+                description: 'Optional context object to pass code or metadata.',
+                properties: {
+                  code: { type: 'string' },
+                  language: { type: 'string' },
+                  metadata: { type: 'object' },
+                },
+              },
+            },
+            required: ['prompt'],
+          },
+        },
+        {
+          name: 'list_copilot_models',
+          description: 'List Copilot models available (currently a single gpt-4.1 placeholder).',
+          inputSchema: { type: 'object', properties: {}, required: [] },
+        },
+        {
+          name: 'compare_copilot_models',
+          description:
+            'Placeholder: Compare prompts across Copilot variants (currently only gpt-4.1; returns informative message).',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              prompt: { type: 'string', description: 'Prompt to send.' },
+              models: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional list of model identifiers (ignored if unsupported).',
+              },
+            },
+            required: ['prompt'],
+          },
+        },
       ],
     };
   }

@@ -72,6 +72,8 @@ describe('FlowExecutor branching', () => {
       ],
     };
 
-    await expect(executor.run(flow as any)).rejects.toThrow('Flow execution exceeded maximum iterations');
+    await expect(executor.run(flow as any)).rejects.toThrow(
+      'Flow execution exceeded maximum iterations'
+    );
   });
 });

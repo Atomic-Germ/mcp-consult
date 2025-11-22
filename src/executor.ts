@@ -111,7 +111,9 @@ export class FlowExecutor {
     }
 
     if (iterations >= maxIterations) {
-      throw new Error(`Flow execution exceeded maximum iterations (${maxIterations}), possible infinite loop detected`);
+      throw new Error(
+        `Flow execution exceeded maximum iterations (${maxIterations}), possible infinite loop detected`
+      );
     }
 
     await this.memoryStore.save(flow.id, ctx.memory);

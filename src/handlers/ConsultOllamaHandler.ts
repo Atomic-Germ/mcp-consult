@@ -45,7 +45,9 @@ export class ConsultOllamaHandler extends BaseHandler {
         const isAvailable = await this.modelValidator.isModelAvailable(model);
         if (!isAvailable) {
           const suggestions = await this.modelValidator.getSuggestions(3);
-          const typeInfo = consultationType ? ` (auto-selected for ${consultationType} consultation)` : '';
+          const typeInfo = consultationType
+            ? ` (auto-selected for ${consultationType} consultation)`
+            : '';
           return {
             content: [
               {

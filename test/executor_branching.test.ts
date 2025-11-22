@@ -55,4 +55,23 @@ describe('FlowExecutor branching', () => {
     expect(ctx.stepResults['s2'].success).toBe(true);
     expect(ctx.memory['b']).toBe('resp:p2');
   });
+
+  it('prevents infinite loops in branching', async () => {
+    (axios as any).post = vi.fn().mockImplementation((url: string, body: any) => {
+      return Promise.resolve({ data: { response: `resp:${body.prompt}` } });
+    });
+
+    const mem = new InMemoryStore();
+    const executor = new FlowExecutor(mem);
+
+    const flow = {
+      id: 'flow-loop',
+      steps: [
+        { id: 's1', model: 'm1', prompt: 'p1', onSuccess: ['s2'] },
+        { id: 's2', model: 'm1', prompt: 'p2', onSuccess: ['s1'] }, // cycle
+      ],
+    };
+
+    await expect(executor.run(flow as any)).rejects.toThrow('Flow execution exceeded maximum iterations');
+  });
 });

@@ -42,7 +42,10 @@ export class FlowExecutor {
     }
 
     let index = 0;
-    while (index < flow.steps.length) {
+    const maxIterations = flow.steps.length * 10; // Prevent infinite loops
+    let iterations = 0;
+    while (index < flow.steps.length && iterations < maxIterations) {
+      iterations++;
       const original = flow.steps[index];
       const step: Step = { ...original };
       const stepId = step.id as string;
@@ -105,6 +108,10 @@ export class FlowExecutor {
       }
 
       index = nextIndex;
+    }
+
+    if (iterations >= maxIterations) {
+      throw new Error(`Flow execution exceeded maximum iterations (${maxIterations}), possible infinite loop detected`);
     }
 
     await this.memoryStore.save(flow.id, ctx.memory);

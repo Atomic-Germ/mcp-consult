@@ -650,6 +650,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
         const steps: ChainStep[] = [];
         const messages: ConversationMessage[] = [];
         let conversationContext = '';
+        const consultantResponses: Record<string, string> = {};
 
         // Add system prompt if provided
         if (context.systemPrompt) {
@@ -664,10 +665,15 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           let stepResponse = '';
           let stepError: string | undefined;
 
-          // Build prompt with conversation context if passThrough is enabled
+          // Replace placeholders in prompt with previous responses
           let finalPrompt = consultant.prompt;
+          for (const [id, response] of Object.entries(consultantResponses)) {
+            finalPrompt = finalPrompt.replace(new RegExp(`\\{${id}\\}`, 'g'), response);
+          }
+
+          // Build prompt with conversation context if passThrough is enabled
           if (context.passThrough && conversationContext) {
-            finalPrompt = `${conversationContext}${consultant.id}: ${consultant.prompt}`;
+            finalPrompt = `${conversationContext}${consultant.id}: ${finalPrompt}`;
           }
 
           while (!stepSuccess && retryCount <= (flowControl.maxRetries || 0)) {
@@ -695,6 +701,9 @@ export async function callToolHandler(params: { name: string; arguments?: any })
 
               stepResponse = response.data.response;
               stepSuccess = true;
+
+              // Store response for placeholder replacement
+              consultantResponses[consultant.id] = stepResponse;
 
               // Add to conversation context for next consultant
               if (context.passThrough) {
@@ -728,6 +737,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
                 // Max retries reached
                 if (flowControl.continueOnError) {
                   stepResponse = `[Error after ${retryCount} retries: ${stepError}]`;
+                  consultantResponses[consultant.id] = stepResponse;
                   if (context.passThrough) {
                     conversationContext += `${consultant.id}: ${consultant.prompt}\nError: ${stepError}\n\n`;
                   }

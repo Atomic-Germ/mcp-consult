@@ -21,7 +21,10 @@
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
     "ci": "pnpm install && pnpm run build && pnpm test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ask-kimi": "node tools/ask/ask_kimi.js",
+    "ask-kimi:run": "node tools/ask/ask_kimi.js --run",
+    "ask-kimi-then-qwen": "node tools/ask/ask_kimi_then_qwen.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.4.0",

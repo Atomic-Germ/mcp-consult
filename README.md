@@ -70,6 +70,10 @@ npm run dev
 npm run demo
 ```
 
+## Copilot & Continue
+
+For guidance on using GitHub Copilot and the local Continue runner with this toolkit, see [Copilot & Continue](COPILOT_AND_CONTINUE.md).
+
 ## Usage Examples
 
 ### Basic Consultation

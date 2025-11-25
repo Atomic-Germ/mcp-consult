@@ -16,6 +16,8 @@ demo-*.txt
 runtime-output.txt
 tsc-output.txt
 *.log
+memory/
+archive/
 
 # Editor / OS
 .vscode/
@@ -28,3 +30,4 @@ dist/
 .DS*
 coverage/
 **output**
+.tmp/

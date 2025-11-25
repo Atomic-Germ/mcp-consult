@@ -4,7 +4,7 @@
   "description": "MCP server for consulting with Ollama models",
   "main": "dist/index.js",
   "scripts": {
-    "clean": "npx rimraf dist/ node_modules/",
+    "clean": "npx rimraf dist/ node_modules/ .tmp/ archive/ memory/ run/",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "start": "node dist/index.js",

@@ -14,17 +14,10 @@ const config = new ConfigManager();
 const ollamaService = new OllamaService(config);
 const sessionContext = new Map<string, unknown>();
 
-const server = new Server(
-  {
-    name: 'mcp-consult',
-    version: '2.0.0',
-  },
-  {
-    capabilities: {
-      tools: {},
-    },
-  }
-);
+const server = new Server({
+  name: 'mcp-consult',
+  version: '2.0.0',
+});
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   const handler = listToolsHandler();

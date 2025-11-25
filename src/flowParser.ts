@@ -105,7 +105,6 @@ export function tryParseFlowConfigText(
     const cfg = parseFlowConfigText(text, format);
     return { success: true, config: cfg };
   } catch (_e) {
-    const e = _e;
     return { success: false, error: _e instanceof Error ? _e.message : String(_e) };
   }
 }

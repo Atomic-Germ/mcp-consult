@@ -1,9 +1,0 @@
-name: API Consumemr
-version: 0.0.1
-schema: v1
-mcpServers:
-  - name: mcp-api-server
-    command: node
-    args:
-      - /home/casey/.local/share/GITS/mcp-api-consumer/dist/index.js
-    env: {}

@@ -1,3 +1,25 @@
+# Node
+node_modules/
+
+# Build / cache
+dist/
+.parcel-cache/
+/.cache
+
+# Coverage and reports
+coverage/
+coverage/lcov.info
+coverage/lcov-report/
+
+# Generated outputs and logs
+demo-*.txt
+runtime-output.txt
+tsc-output.txt
+*.log
+
+# Editor / OS
+.vscode/
+.DS_Store
 node_modules/
 dist/
 .env
@@ -5,3 +27,4 @@ dist/
 .github/instructions/
 .DS*
 coverage/
+**output**

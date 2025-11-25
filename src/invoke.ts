@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { ExecutionContext } from './types';
 import { callToolHandler } from './legacy-handlers';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';

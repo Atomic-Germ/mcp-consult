@@ -56,12 +56,11 @@ export class FlowExecutor {
         try {
           ok = evalCondition(step.condition, { memory: ctx.memory, variables: ctx.variables });
         } catch (_e) {
-          const e = _e;
           // Record condition error and skip to next
           ctx.stepResults[stepId] = {
             stepId,
             success: false,
-            error: `Condition error: ${(e as Error).message}`,
+            error: `Condition error: ${(_e as Error).message}`,
           };
           index = index + 1;
           continue;

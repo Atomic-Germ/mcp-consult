@@ -52,7 +52,6 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
     if (!found) return false;
     return modelObjIsSafe(found);
   } catch (_e) {
-    const e = _e;
     // If we couldn't query Ollama, be conservative and return false so callers can handle gracefully
     return false;
   }
@@ -317,7 +316,6 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             if (await isModelAvailable(m)) ok.push(m);
             else bad.push(m);
           } catch (_e) {
-            const e = _e;
             bad.push(m);
           }
         }
@@ -443,7 +441,6 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             const parsed = JSON.parse(envCfg);
             tryServers.push(parsed);
           } catch (_e) {
-            const e = _e;
             const [cmd, ...argList] = envCfg.split(/\s+/);
             tryServers.push({ type: 'stdio', command: cmd, args: argList });
           }
@@ -468,12 +465,10 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             if (rememberKey) tryServers.push(servers[rememberKey]);
             if (memoryKey) tryServers.push(servers[memoryKey]);
           } catch (_e) {
-            const e = _e;
             // ignore parse errors
           }
         }
       } catch (_e) {
-        const e = _e;
         // ignore
       }
 
@@ -492,10 +487,10 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           command: serverCfg.command,
           args: serverCfg.args || [],
         });
-        const client = new Client(
-          { name: 'mcp-memory-client', version: '1.0.0' },
-          { capabilities: {} }
-        );
+        const client = new Client({
+          name: 'mcp-memory-client',
+          version: '1.0.0',
+        });
 
         // limit connection time
         const conn = client.connect(transport);
@@ -580,7 +575,6 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             return r;
           }
         } catch (_e) {
-          const e = _e;
           // try next server
         }
       }
@@ -616,8 +610,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           ],
         };
       } catch (_err) {
-        const err = _err;
-        const message = err instanceof Error ? err.message : String(err);
+        const message = _err instanceof Error ? _err.message : String(_err);
         return {
           content: [{ type: 'text', text: `Failed to save memory: ${message}` }],
           isError: true,
@@ -839,8 +832,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           ],
         };
       } catch (_error) {
-        const error = _error;
-        const message = error instanceof Error ? error.message : 'Unknown error';
+        const message = _error instanceof Error ? _error.message : 'Unknown error';
         return {
           content: [
             {

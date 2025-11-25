@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { registerTool, invokeTool } from '../src/invoke';
 
 describe('invokeTool timeouts', () => {
   it('times out a slow registered tool', async () => {
     // Register a slow tool that resolves after 50ms
-    registerTool('slow_test', async (args: any) => {
+    registerTool('slow_test', async (_args: any) => {
       return new Promise((res) => setTimeout(() => res({ ok: true }), 50));
     });
 

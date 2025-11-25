@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConsultOllamaHandler } from '../../src/handlers/ConsultOllamaHandler';
 import { OllamaService } from '../../src/services/OllamaService';
 import { ModelValidator } from '../../src/services/ModelValidator';
-import { ValidationError } from '../../src/types';
 
 describe('ConsultOllamaHandler', () => {
   let handler: ConsultOllamaHandler;

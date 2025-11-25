@@ -146,7 +146,6 @@ export class FlowExecutor {
 
         return { stepId: step.id!, success: true, output, attempts: attempt + 1 };
       } catch (_e) {
-        const e = _e;
         attempt++;
         const message = _e instanceof Error ? _e.message : String(_e);
         if (attempt > maxRetries) {

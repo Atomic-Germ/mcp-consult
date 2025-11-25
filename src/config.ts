@@ -14,6 +14,7 @@ export function getAllowedTools(): string[] | undefined {
         if (Array.isArray(parsed)) return parsed.map(String);
       }
     } catch (_e) {
+      void _e;
       // fallthrough to comma split
     }
     return trimmed
@@ -30,6 +31,7 @@ export function getAllowedTools(): string[] | undefined {
       if (Array.isArray(parsed.allowedTools)) return parsed.allowedTools.map(String);
     }
   } catch (_e) {
+    void _e;
     // ignore
   }
 

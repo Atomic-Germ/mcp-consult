@@ -52,6 +52,7 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
     if (!found) return false;
     return modelObjIsSafe(found);
   } catch (_e) {
+    void _e;
     // If we couldn't query Ollama, be conservative and return false so callers can handle gracefully
     return false;
   }
@@ -186,7 +187,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
               .map((m: any) => m.name)
               .slice(0, 5);
           } catch (_e) {
-            const e = _e;
+            void _e;
             // ignore
           }
 
@@ -316,6 +317,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             if (await isModelAvailable(m)) ok.push(m);
             else bad.push(m);
           } catch (_e) {
+            void _e;
             bad.push(m);
           }
         }
@@ -350,7 +352,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
               ? candidates
               : (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
         } catch (_err) {
-          const err = _err;
+          void _err;
           modelsToUse = ['llama2'];
         }
       }
@@ -441,12 +443,13 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             const parsed = JSON.parse(envCfg);
             tryServers.push(parsed);
           } catch (_e) {
+            void _e;
             const [cmd, ...argList] = envCfg.split(/\s+/);
             tryServers.push({ type: 'stdio', command: cmd, args: argList });
           }
         }
       } catch (_e) {
-        const e = _e;
+        void _e;
         // ignore
       }
 
@@ -465,10 +468,12 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             if (rememberKey) tryServers.push(servers[rememberKey]);
             if (memoryKey) tryServers.push(servers[memoryKey]);
           } catch (_e) {
+            void _e;
             // ignore parse errors
           }
         }
       } catch (_e) {
+        void _e;
         // ignore
       }
 
@@ -575,6 +580,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             return r;
           }
         } catch (_e) {
+          void _e;
           // try next server
         }
       }

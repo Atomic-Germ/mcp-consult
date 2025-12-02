@@ -1,4 +1,7 @@
 # MCP Ollama Consult Server
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io)
+[![CI/CD](https://github.com/Atomic-Germ/mcp-consult/actions/workflows/ci.yml/badge.svg)](https://github.com/Atomic-Germ/mcp-consult/actions/workflows/ci.yml)
 
 An MCP (Model Context Protocol) server that allows consulting with Ollama models for reasoning from alternative viewpoints.
 

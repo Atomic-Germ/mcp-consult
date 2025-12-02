@@ -27,7 +27,7 @@
     "ask-kimi-then-qwen": "node tools/ask/ask_kimi_then_qwen.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.4.0",
+    "@modelcontextprotocol/sdk": "^1.24.0",
     "axios": "^1.6.0",
     "js-yaml": "^4.1.0",
     "zod": "^3.22.0"

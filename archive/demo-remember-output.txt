@@ -1,0 +1,34 @@
+Connecting to stdio server (spawning 'node dist/index.js')...
+Ollama Consult MCP server running on stdio
+Connected. Listing tools...
+Server tools:
+ - consult_ollama: Consult an Ollama model with a prompt and get its response for reasoning from another viewpoint.
+ - list_ollama_models: List all available Ollama models on the local instance.
+ - compare_ollama_models: Run the same prompt against multiple Ollama models and return their outputs side-by-side for comparison.
+ - remember_consult: Store the result of a consult into a local memory store (or configured memory service).
+
+Calling 'list_ollama_models'...
+list_ollama_models result:
+ Available models: glm-4.6:cloud, gemma3:4b, gpt-oss:20b-cloud, deepseek-v3.1:671b-cloud, gpt-oss:120b-cloud, qwen3-coder:480b-cloud
+Using model "glm-4.6:cloud" for consult_ollama (best-effort).
+
+Calling 'consult_ollama' (with 15s timeout)...
+consult_ollama result:
+ While Rust offers compelling safety benefits, rewriting coreutils presents a massive undertaking with its own risks. The current C codebase is extraordinarily stable and battle-tested across countless platforms over decades, making its behavior predictable and well-understood. A new implementation would need to perfectly replicate countless subtle behaviors and edge cases, potentially introducing new logic bugs, and the immense engineering effort required might be better allocated to other high-priority security projects.
+
+Calling 'remember_consult' to persist this consult (best-effort)...
+Knowledge Graph MCP Server running on stdio
+remember_consult result:
+ Saved consult to /tmp/mcp-consult-memory/observation-1762552399194-du4n8yv.json
+{"type":"resource","resource":{"uri":"file:///tmp/mcp-consult-memory/observation-1762552399194-du4n8yv.json","text":"While Rust offers compelling safety benefits, rewriting coreutils presents a massive undertaking with its own risks. The current C codebase is extraordinarily stable and battle-tested across countless platforms over decades, making its behavior predictable and well-understood. A new implementation would need to perfectly replicate countless subtle behaviors and edge cases, potentially introducing new logic bugs, and the immense engineering effort required might be better allocated to other high-priority security projects."}}
+
+Calling 'compare_ollama_models' to compare model outputs...
+compare_ollama_models result:
+ Model glm-4.6:cloud:
+Rewriting the battle-tested coreutils suite is an immense risk, trading the stability of decades of real-world use for a new, unproven codebase. The existing C code has been scrutinized by countless experts, ironing out subtle bugs and edge cases that a rewrite would inevitably re-introduce. This enormous developer effort could be more effectively spent on targeted security audits and hardening the existing, proven tools.
+
+---
+
+Model gemma3:4b:
+While Rust offers benefits like memory safety, rewriting coreutils carries significant risk and cost. Coreutils is a mature, highly optimized C codebase with a massive user base – any changes introduce potential compatibility issues and require extensive testing.  Investing this level of effort in a new language might not yield proportionate gains in performance or maintainability, and could distract from more impactful improvements. A pragmatic approach prioritizes incremental improvements within the existing C codebase.
+Closing client...

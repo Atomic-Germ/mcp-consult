@@ -20,11 +20,17 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "js-yaml": "^4.1.1",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0",
     "vitest": "^1.0.0"
   },
-  "keywords": ["mcp", "ollama", "ai", "consultation"],
+  "keywords": [
+    "mcp",
+    "ollama",
+    "ai",
+    "consultation"
+  ],
   "author": "",
   "license": "MIT"
 }

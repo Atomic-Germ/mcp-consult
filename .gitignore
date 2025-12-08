@@ -31,3 +31,5 @@ dist/
 coverage/
 **output**
 .tmp/
+archive
+demo-*.txt

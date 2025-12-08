@@ -1,37 +1,24 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  CallToolResult,
-} from '@modelcontextprotocol/sdk/types.js';
-import { ConfigManager } from './config/ConfigManager.js';
-import { OllamaService } from './services/OllamaService.js';
-import { listToolsHandler } from './handlers/listToolsHandler.js';
-import { callToolHandler } from './handlers/callToolHandler.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { listTools, callToolHandler } from "./handlers.js";
 
-const config = new ConfigManager();
-const ollamaService = new OllamaService(config);
-const sessionContext = new Map<string, unknown>();
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
 
 const server = new Server({
-  name: 'mcp-consult',
-  version: '2.0.0',
+  name: "ollama-consult",
+  version: "1.0.0",
 });
 
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  const handler = listToolsHandler();
-  return await handler.handle();
-});
+// Expose tools via MCP request handlers
+server.setRequestHandler(ListToolsRequestSchema, async () => listTools());
 
-server.setRequestHandler(CallToolRequestSchema, async (request): Promise<CallToolResult> => {
-  const handler = callToolHandler(ollamaService, sessionContext);
-  return (await handler.handle(request as unknown as any)) as CallToolResult;
-});
+server.setRequestHandler(CallToolRequestSchema, async (request) => callToolHandler(request.params));
 
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  console.error("Ollama Consult MCP server running on stdio");
 }
 
 main().catch(console.error);

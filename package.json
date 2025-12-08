@@ -10,8 +10,7 @@
     "demo": "node dist/demo-client.js",
     "dev:demo": "ts-node src/demo-client.ts",
     "test": "vitest run --reporter default",
-    "test:watch": "vitest",
-    "ci": "npm install && npm run build && npm test"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.4.0",
@@ -23,7 +22,7 @@
     "js-yaml": "^4.1.1",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
+    "vitest": "^4.0.15"
   },
   "keywords": [
     "mcp",

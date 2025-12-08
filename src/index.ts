@@ -1,13 +1,34 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { CallToolRequestSchema, ListToolsRequestSchema, InitializeRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { listTools, callToolHandler } from "./handlers.js";
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
 
-const server = new Server({
-  name: "ollama-consult",
-  version: "1.0.0",
+const server = new Server(
+  {
+    name: "ollama-consult",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// Handle initialize request
+server.setRequestHandler(InitializeRequestSchema, async (request) => {
+  return {
+    protocolVersion: request.params.protocolVersion,
+    capabilities: {
+      tools: {},
+    },
+    serverInfo: {
+      name: "ollama-consult",
+      version: "1.0.0",
+    },
+  };
 });
 
 // Expose tools via MCP request handlers

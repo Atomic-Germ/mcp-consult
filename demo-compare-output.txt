@@ -1,0 +1,27 @@
+Connecting to stdio server (spawning 'node dist/index.js')...
+Ollama Consult MCP server running on stdio
+Connected. Listing tools...
+Server tools:
+ - consult_ollama: Consult an Ollama model with a prompt and get its response for reasoning from another viewpoint.
+ - list_ollama_models: List all available Ollama models on the local instance.
+ - compare_ollama_models: Run the same prompt against multiple Ollama models and return their outputs side-by-side for comparison.
+
+Calling 'list_ollama_models'...
+list_ollama_models result:
+ Available models: glm-4.6:cloud, gemma3:4b, gpt-oss:20b-cloud, deepseek-v3.1:671b-cloud, gpt-oss:120b-cloud, qwen3-coder:480b-cloud
+Using model "glm-4.6:cloud" for consult_ollama (best-effort).
+
+Calling 'consult_ollama' (with 15s timeout)...
+consult_ollama result:
+ While Rust offers safety benefits, rewriting coreutils is a monumental undertaking that risks breaking decades of stability. The current C versions are battle-tested, POSIX-compliant, and their every quirk is relied upon by systems and scripts worldwide. A full rewrite introduces new bugs and compatibility issues, suggesting that focused hardening of the existing code might be a more practical use of developer time.
+
+Calling 'compare_ollama_models' to compare model outputs...
+compare_ollama_models result:
+ Model glm-4.6:cloud:
+While Rust offers memory safety, the C implementation of coreutils has been battle-tested for decades, proving its immense stability and correctness. A full rewrite introduces a massive new surface for unknown bugs, effectively trading well-understood issues for new ones. The immense developer effort required could be more productively spent auditing and carefully improving the existing, trusted codebase.
+
+---
+
+Model gemma3:4b:
+While Rust offers benefits like memory safety, rewriting coreutils presents significant risks. The existing C codebase is incredibly mature, highly optimized, and deeply ingrained in the Linux ecosystem – a wholesale rewrite would introduce immense testing and compatibility challenges.  Furthermore, the immense effort required could be better spent on incremental improvements and bug fixes within the existing C codebase, offering a more sustainable and reliable approach.
+Closing client...

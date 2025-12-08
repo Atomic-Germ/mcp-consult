@@ -34,6 +34,7 @@ describe("handlers", () => {
   });
 
   it("compare_ollama_models returns outputs from multiple models", async () => {
+    (axios as any).get.mockResolvedValue({ data: { models: [{ name: "m1" }, { name: "m2" }] } });
     (axios as any).post.mockImplementation((url: string, data: any) => {
       if (data.model === "m1") return Promise.resolve({ data: { response: "out1" } });
       if (data.model === "m2") return Promise.resolve({ data: { response: "out2" } });

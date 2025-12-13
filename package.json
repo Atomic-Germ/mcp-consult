@@ -1,6 +1,6 @@
 {
-  "name": "mcp-ollama-consult",
-  "version": "1.0.0",
+  "name": "mcp-consult",
+  "version": "1.0.0-m1",
   "description": "MCP server for consulting with Ollama models",
   "main": "dist/index.js",
   "scripts": {

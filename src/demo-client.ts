@@ -96,6 +96,63 @@ async function main() {
       console.log("No consult_ollama result (timed out or failed).");
     }
 
+      // ---- Bridge Walk: remember the consult, list, read and critique ----
+      try {
+        // Save (remember) the consult to the MEMORY_DIR with a sessionId
+        const sessionId = `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        if (consultRes && !consultRes.isError) {
+          const recallText = (Array.isArray(consultRes.content) ? consultRes.content : [])
+            .filter((c: any) => c.type === "text")
+            .map((c: any) => c.text)
+            .join("\n");
+
+          if (recallText) {
+            console.log("Saving consult to memory via 'remember_consult'...");
+            const saveRes = await client.callTool({ name: "remember_consult", arguments: { prompt, model: modelName, response: recallText, sessionId } }, CallToolResultSchema);
+            if (saveRes && !saveRes.isError) console.log("Saved consult to memory.", (saveRes as any).content?.[0]?.text || "");
+          }
+        }
+
+        // Search for consults saved in this session or matching the prompt
+        console.log("Searching consults with 'search_consults' for sessionId and prompt substring...");
+        const lres = await client.callTool({ name: "search_consults", arguments: { sessionId, query: prompt.split(' ').slice(0, 4).join(' ') } }, CallToolResultSchema);
+        if (!lres.isError) {
+          const entries: any[] = (lres as any).content?.[0]?.resource?.results || [];
+          console.log("Consult entries:", entries);
+          if (entries.length > 0) {
+            // Read the most recent consult
+            console.log("Reading the first consult with 'read_consult'...");
+            const readRes = await client.callTool({ name: "read_consult", arguments: { filename: entries[0].filename } }, CallToolResultSchema);
+            if (!readRes.isError) {
+              console.log("read_consult result:", ((readRes as any).content?.[0]?.resource?.text || "").slice(0, 200) || "(no text)");
+
+              // Critique using multiple models
+              console.log("Running 'critique_consult' on that consult...");
+              // Try to re-extract available models for critique (best-effort)
+              let critiqueModels: string[] | undefined = undefined;
+              try {
+                const firstText = (Array.isArray(listRes.content) ? listRes.content : []).find((c: any) => c.type === "text")?.text || "";
+                const modelsMatch = firstText.match(/Available models:\s*(.*)/i);
+                if (modelsMatch && modelsMatch[1]) {
+                  const found = modelsMatch[1].split(/[,;\n]+/).map((s: string) => s.trim()).filter(Boolean);
+                  if (found.length >= 2) critiqueModels = found.slice(0, 2);
+                }
+              } catch (e) {
+                // ignore
+              }
+
+              const critRes = await client.callTool({ name: "critique_consult", arguments: { filename: entries[0].filename, models: critiqueModels, prompt_prefix: 'Please provide a short critique and suggest improvements.' } }, CallToolResultSchema);
+              if (!critRes.isError) {
+                const critText = (Array.isArray(critRes.content) ? critRes.content : []).map((c: any) => c.text).join("\n\n---\n\n");
+                console.log("critique_consult result:\n", critText);
+              }
+            }
+          }
+        }
+      } catch (err: any) {
+        console.error("Bridge walk failed:", err?.message || String(err));
+      }
+
       // ---- New: call compare_ollama_models to show side-by-side outputs ----
       console.log("\nCalling 'compare_ollama_models' to compare model outputs...");
 

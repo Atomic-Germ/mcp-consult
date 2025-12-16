@@ -25,7 +25,10 @@ server.setRequestHandler(InitializeRequestSchema, async (request) => {
 });
 
 // Expose tools via MCP request handlers
-server.setRequestHandler(ListToolsRequestSchema, async () => listTools());
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  console.log('Received tools/list request');
+  return listTools();
+});
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => callToolHandler(request.params));
 

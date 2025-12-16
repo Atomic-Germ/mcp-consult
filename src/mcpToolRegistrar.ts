@@ -161,6 +161,7 @@ export async function registerMcpTools(
       registered.add(name);
 
       logger.info(`Registered tool: ${name}`);
+      logger.info(`Processing tool: ${name}`);
 
       if (healthCheck) {
         try {

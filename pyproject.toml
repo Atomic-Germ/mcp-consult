@@ -1,0 +1,17 @@
+[project]
+name = "fast-consult"
+version = "0.1.0"
+description = "FastMCP-based Ollama consultation server"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastmcp>=2.14.1",
+    "requests>=2.32.5",
+]
+
+[project.scripts]
+fast-consult = "fast_consult:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

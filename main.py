@@ -16,23 +16,46 @@ from fastmcp import FastMCP
 
 # Configuration
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "1200"))  # seconds (default 20 minutes)
 MEMORY_DIR = os.getenv("MEMORY_DIR", "/tmp/fast-consult-memory")
 
 # Create FastMCP app
 app = FastMCP("fast-consult")
 
-def make_ollama_request(endpoint: str, data: Dict[str, Any], timeout: int = 300) -> Dict[str, Any]:
-    """Make a request to Ollama with proper timeout handling."""
+def make_ollama_request(endpoint: str, data: Optional[Dict[str, Any]] = None, timeout: int = OLLAMA_TIMEOUT) -> Dict[str, Any]:
+    """Make a request to Ollama with proper timeout handling.
+
+    This handles both normal JSON responses and streaming NDJSON/chunked
+    responses from generation endpoints.
+
+    The default timeout is configurable via the `OLLAMA_TIMEOUT` env var.
+    """
     url = f"{OLLAMA_BASE_URL}{endpoint}"
     try:
-        # Use GET for endpoints that don't need data (like /api/tags)
-        # Use POST for endpoints that need JSON data (like /api/generate)
-        if endpoint == "/api/tags" or not data:
+        # Use GET for model listing or when no data is provided; otherwise POST.
+        if endpoint == "/api/models" or not data:
             response = requests.get(url, timeout=timeout)
+            response.raise_for_status()
+            return response.json()
         else:
-            response = requests.post(url, json=data, timeout=timeout)
-        response.raise_for_status()
-        return response.json()
+            response = requests.post(url, json=data, stream=True, timeout=timeout)
+            response.raise_for_status()
+
+            merged: Dict[str, Any] = {"response": "", "done": False}
+            for line in response.iter_lines(decode_unicode=True):
+                if not line:
+                    continue
+                try:
+                    chunk = json.loads(line)
+                except Exception:
+                    continue
+                if isinstance(chunk.get("response"), str) and chunk.get("response"):
+                    merged["response"] += chunk.get("response")
+                if "model" in chunk and "model" not in merged:
+                    merged["model"] = chunk.get("model")
+                if chunk.get("done"):
+                    merged["done"] = True
+            return merged
     except requests.exceptions.RequestException as e:
         raise Exception(f"Ollama request failed: {str(e)}")
 
@@ -78,8 +101,15 @@ async def list_ollama_models() -> str:
         Comma-separated list of available model names
     """
     try:
-        response = make_ollama_request("/api/tags", {}, timeout=30)
-        models = [model["name"] for model in response.get("models", [])]
+        response = make_ollama_request("/api/models", None, timeout=30)
+        # Support both {"models": [...]} and plain list responses
+        if isinstance(response, dict) and "models" in response:
+            models_list = response.get("models", [])
+        elif isinstance(response, list):
+            models_list = response
+        else:
+            models_list = []
+        models = [m.get("name", m) if isinstance(m, dict) else str(m) for m in models_list]
         return f"Available models: {', '.join(models)}"
     except Exception as e:
         return f"Error listing models: {str(e)}"
@@ -105,10 +135,14 @@ async def compare_ollama_models(
     # Get available models if not specified
     if not models:
         try:
-            response = make_ollama_request("/api/tags", {}, timeout=30)
-            available_models = [model["name"] for model in response.get("models", [])]
-            models = available_models[:2] if len(available_models) >= 2 else available_models
-        except Exception:
+            response = make_ollama_request("/api/models", None, timeout=30)
+            # Support both {"models": [...]} and plain list responses
+            if isinstance(response, dict) and "models" in response:
+                available_models = [m.get("name", m) if isinstance(m, dict) else str(m) for m in response.get("models", [])]
+            elif isinstance(response, list):
+                available_models = [m.get("name", m) if isinstance(m, dict) else str(m) for m in response]
+            else:
+                available_models = []
             models = ["llama2"]  # fallback
 
     if not models:

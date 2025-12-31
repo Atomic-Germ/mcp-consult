@@ -10,6 +10,8 @@ An MCP (Model Context Protocol) server that allows consulting with Ollama models
 
 - **consult_ollama**: Send prompts to Ollama models and get responses
 - **list_ollama_models**: List available models on the local Ollama instance
+- **compare_ollama_models**: Run the ame prompt against multiple Ollama models and return their outputs side-by-side for comparison
+- **remember_consult**: Store the result of a consult into a local memory store (or configured memory service)
 
 ## Installation
 

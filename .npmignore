@@ -1,0 +1,26 @@
+# Exclude development files
+node_modules/
+.git/
+.github/
+.husky/
+.tmp/
+coverage/
+archive/
+test/
+scripts/
+src/
+*.log
+*.txt
+.prettierignore
+.prettierrc
+.eslintrc.json
+eslint.config.js
+tsconfig.json
+vitest.config.ts
+pnpm-workspace.yaml
+package-lock.json
+pnpm-lock.yaml
+CONTRIBUTING.md
+Dockerfile
+README.md
+LICENSE

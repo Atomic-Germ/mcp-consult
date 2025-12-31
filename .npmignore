@@ -1,4 +1,0 @@
-# Exclude only node_modules
-node_modules/
-.git/
-.github/

@@ -1,6 +1,6 @@
 {
   "name": "mcp-ollama-consult",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for consulting with Ollama models",
   "main": "dist/index.js",
   "bin": {
@@ -9,7 +9,7 @@
   "scripts": {
     "clean": "rm -rf dist *.tgz",
     "build": "tsc && npm pack --dry-run",
-    "pack": "npm pack",
+    "pack": "tsc && npm pack",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "demo": "node dist/demo-client.js",

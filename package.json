@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "MCP server for consulting with Ollama models",
   "main": "dist/index.js",
+  "bin": {
+    "mcp-ollama-consult": "dist/index.js"
+  },
   "scripts": {
     "clean": "rm -rf dist",
     "build": "tsc",

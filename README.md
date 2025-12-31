@@ -16,17 +16,25 @@ An MCP (Model Context Protocol) server that allows consulting with Ollama models
 
 ## Installation
 
-1. Ensure you have Node.js installed
-2. Install dependencies:
+1. Install the server:
 
    ```bash
-   npm install
+   npm i -g https://github.com/Atomic-Germ/mcp-consult/releases/download/v1.0.1/mcp-ollama-consult-1.0.1.tgz
    ```
 
-3. Build the project:
+2. Configure the server:
 
-   ```bash
-   npm run build
+   ```json
+   {
+	"servers": {
+		"ollama-consult": {
+			"type": "stdio",
+			"command": "mcp-ollama-consult",
+			"args": []
+		}
+	},
+	"inputs": []
+   }
    ```
 
 ## Usage
@@ -36,7 +44,7 @@ Make sure Ollama is running locally (default: ([http://localhost:11434](http://l
 Start the MCP server:
 
 ```bash
-npm start
+mcp-ollama-consult
 ```
 
 Or for development:

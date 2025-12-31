@@ -1,5 +1,4 @@
-// Compatibility re-export for legacy imports. The real implementation lives in `src/handlers/legacy-handlers.ts`.
-export * from './handlers/legacy-handlers';
+// Legacy handlers implementation (self-contained in this file).
 import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';

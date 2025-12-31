@@ -11,7 +11,6 @@ import {
   SequentialChainResult,
   ChainStep,
   ConversationMessage,
-  ConsultantConfig,
 } from '../conversationTypes.js';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
@@ -790,7 +789,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             const memoryKey = memory.memoryKey || `sequential_chain_${conversationId}`;
             const memoryData = {
               key: memoryKey,
-              prompt: `Sequential consultation chain: ${consultants.map((c: ConsultantConfig) => c.id).join(' → ')}`,
+              prompt: `Sequential consultation chain: ${consultants.map((c) => c.id).join(' → ')}`,
               response: JSON.stringify(result),
               model: 'sequential_chain',
             };

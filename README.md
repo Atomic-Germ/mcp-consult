@@ -2,12 +2,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io)
 [![CI/CD](https://github.com/Atomic-Germ/mcp-consult/actions/workflows/ci.yml/badge.svg)](https://github.com/Atomic-Germ/mcp-consult/actions/workflows/ci.yml)
+[![Ollama Consult Server MCP](https://glama.ai/mcp/servers/@Atomic-Germ/mcp-consult/badge.png)](https://glama.ai/mcp/servers/@Atomic-Germ/mcp-consult)
 
 An MCP (Model Context Protocol) server that allows consulting with Ollama models for reasoning from alternative viewpoints.
-
-<a href="https://glama.ai/mcp/servers/@Atomic-Germ/mcp-consult">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/@Atomic-Germ/mcp-consult/badge" alt="Ollama Consult Server MCP server" />
-</a>
 
 ## Features
 

@@ -14,9 +14,9 @@
     "dev": "ts-node src/index.ts",
     "demo": "node dist/demo-client.js",
     "dev:demo": "ts-node src/demo-client.ts",
-    "test": "vitest run --reporter default",
+    "test": "vitest run --reporter default --typecheck",
     "test:watch": "vitest",
-    "ci": "npm install && npm run build && npm test",
+    "ci": "pnpm install && pnpm run pack && pnpm test",
     "lint": "eslint --ext .ts,.js .",
     "lint:fix": "eslint --ext .ts,.js . --fix"
   },

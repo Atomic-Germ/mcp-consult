@@ -155,6 +155,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           const resp = await axios.get(`${OLLAMA_BASE_URL}/api/tags`);
           modelsToUse = (resp.data.models || []).map((m: any) => m.name).slice(0, 2);
         } catch (err) {
+          void err;
           modelsToUse = ['llama2'];
         }
       }
@@ -254,6 +255,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           ],
         };
       } catch (err) {
+        void err;
         const message = err instanceof Error ? err.message : String(err);
         return {
           content: [{ type: 'text', text: `Failed to save memory: ${message}` }],

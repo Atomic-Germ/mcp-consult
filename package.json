@@ -7,8 +7,9 @@
     "mcp-ollama-consult": "dist/index.js"
   },
   "scripts": {
-    "clean": "rm -rf dist",
-    "build": "tsc",
+    "clean": "rm -rf dist *.tgz",
+    "build": "tsc && npm pack --dry-run",
+    "pack": "npm pack",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "demo": "node dist/demo-client.js",

@@ -71,6 +71,7 @@ export class ModelValidator {
       const available = await this.getAvailableModels();
       return available.some((m) => m.name === modelName);
     } catch (_error) {
+      void _error;
       // If we can't check, assume unavailable to be safe
       return false;
     }

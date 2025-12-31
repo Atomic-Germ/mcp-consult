@@ -57,6 +57,7 @@ async function main() {
         if (candidate) modelName = candidate;
       }
     } catch (err) {
+      void err;
       // ignore parsing errors and use fallback
     }
 
@@ -90,6 +91,7 @@ async function main() {
         15_000
       );
     } catch (err: any) {
+      void err;
       console.error(
         'consult_ollama timed out or failed:',
         err instanceof Error ? err.message : String(err)
@@ -127,6 +129,7 @@ async function main() {
           .filter(Boolean);
       }
     } catch (e) {
+      void e;
       // ignore
     }
 
@@ -148,18 +151,21 @@ async function main() {
         console.log('compare_ollama_models result:\n', cmp);
       }
     } catch (err: any) {
+      void err;
       console.error(
         'compare_ollama_models failed:',
         err instanceof Error ? err.message : String(err)
       );
     }
   } catch (err: any) {
+    void err;
     console.error('Demo failed:', err instanceof Error ? err.stack || err.message : String(err));
   } finally {
     try {
       console.log('Closing client...');
       await client.close();
     } catch (e) {
+      void e;
       // ignore
     }
   }

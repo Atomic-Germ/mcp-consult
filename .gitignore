@@ -4,8 +4,6 @@ node_modules/
 # Build / cache
 .parcel-cache/
 /.cache
-
-# Coverage and reports
 coverage/
 coverage/lcov.info
 coverage/lcov-report/
@@ -22,7 +20,6 @@ archive/
 .vscode/
 .DS_Store
 node_modules/
-dist/
 .env
 *.log./*.txt
 .github/instructions/

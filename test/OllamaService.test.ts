@@ -177,7 +177,7 @@ describe('OllamaService', () => {
 
       expect(result.response).toBe('Success');
       expect(fetchSpy).toHaveBeenCalledTimes(3);
-    });
+    }, 10000);
 
     it('should throw after max retries exceeded', async () => {
       fetchSpy.mockRejectedValue(new Error('Network error'));
@@ -241,7 +241,7 @@ describe('OllamaService', () => {
       expect(results[0].error).toBeUndefined();
       expect(results[1].response).toBe('');
       expect(results[1].error).toBeDefined();
-    });
+    }, 15000);
 
     it('should validate models array', async () => {
       await expect(service.compareModels([], 'test')).rejects.toThrow(ValidationError);

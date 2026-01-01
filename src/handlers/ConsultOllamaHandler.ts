@@ -64,7 +64,7 @@ export class ConsultOllamaHandler extends BaseHandler {
       const request: ConsultRequest = {
         model,
         prompt: typedParams.prompt as string,
-        stream: false,
+        stream: true,
       };
 
       // Include system prompt if provided

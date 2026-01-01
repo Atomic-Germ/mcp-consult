@@ -55,7 +55,7 @@ export class OllamaService {
           prompt: request.prompt,
           system: request.systemPrompt,
           temperature: request.temperature,
-          stream: false,
+          stream: true,
         },
         request.timeout
       );
@@ -92,7 +92,7 @@ export class OllamaService {
             model,
             prompt,
             systemPrompt,
-            stream: false,
+            stream: true,
             timeout: timeoutMs,
           });
           return {

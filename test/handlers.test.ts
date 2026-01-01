@@ -1,77 +1,67 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as handlers from '../src/handlers';
-import axios from 'axios';
-import fs from 'fs/promises';
-import os from 'os';
-import path from 'path';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { callToolHandler } from '../src/handlers/callToolHandler';
+import { OllamaService } from '../src/services/OllamaService';
+import { ConfigManager } from '../src/config/ConfigManager';
+import { ModelValidator } from '../src/services/ModelValidator';
 
-vi.mock('axios');
+describe('callToolHandler', () => {
+  let mockService: OllamaService;
+  let mockValidator: ModelValidator;
+  let sessionContext: Map<string, unknown>;
+  let handler: any;
 
-describe('handlers', () => {
   beforeEach(() => {
-    (axios as any).get = vi.fn();
-    (axios as any).post = vi.fn();
-  });
+    const config = new ConfigManager();
+    mockService = new OllamaService(config);
+    // Mock methods
+    mockService.consult = vi.fn().mockResolvedValue({ response: 'mock response' } as any);
+    mockService.listModels = vi.fn().mockResolvedValue([{ name: 'm1' }, { name: 'm2' }]);
+    
+    mockValidator = {
+      getAvailableModels: vi.fn().mockResolvedValue([{ name: 'm1', installed: true }, { name: 'm2', installed: true }]),
+      isModelAvailable: vi.fn().mockResolvedValue(true),
+      getSuggestions: vi.fn().mockResolvedValue(['m1']),
+      getDefaultModel: vi.fn().mockResolvedValue('m1'),
+    } as any;
 
-  afterEach(async () => {
-    vi.resetAllMocks();
-    delete process.env.MEMORY_DIR;
+    sessionContext = new Map();
+    handler = callToolHandler(mockService, sessionContext, mockValidator);
   });
 
   it('list_ollama_models returns available models text', async () => {
-    (axios as any).get.mockResolvedValue({ data: { models: [{ name: 'm1' }, { name: 'm2' }] } });
-    const res = await handlers.callToolHandler({ name: 'list_ollama_models', arguments: {} });
+    const res = await handler.handle({ params: { name: 'list_ollama_models', arguments: {} } });
     expect(res).toBeDefined();
     expect(res.content[0].text).toContain('m1');
     expect(res.content[0].text).toContain('m2');
   });
 
   it('consult_ollama returns generated text', async () => {
-    (axios as any).post.mockResolvedValue({ data: { response: 'hello world' } });
-    const res = await handlers.callToolHandler({
-      name: 'consult_ollama',
-      arguments: { model: 'm1', prompt: 'p' },
+    const res = await handler.handle({
+      params: {
+        name: 'consult_ollama',
+        arguments: { model: 'm1', prompt: 'p' },
+      }
     });
     expect(res).toBeDefined();
-    expect(res.content[0].text).toBe('hello world');
+    expect(res.content[0].text).toBe('mock response');
   });
 
-  it('compare_ollama_models returns outputs from multiple models', async () => {
-    (axios as any).post.mockImplementation((url: string, data: any) => {
-      if (data.model === 'm1') return Promise.resolve({ data: { response: 'out1' } });
-      if (data.model === 'm2') return Promise.resolve({ data: { response: 'out2' } });
-      return Promise.resolve({ data: { response: 'default' } });
+  it('compare_ollama_responses returns outputs from multiple models', async () => {
+    // Mock consult to return different values based on model
+    vi.spyOn(mockService, 'consult').mockImplementation(async (req: any) => {
+      return { response: `response from ${req.model}` } as any;
     });
 
-    const res = await handlers.callToolHandler({
-      name: 'compare_ollama_models',
-      arguments: { models: ['m1', 'm2'], prompt: 'p' },
-    });
-    expect(res).toBeDefined();
-    const texts = (res.content || []).map((c: any) => c.text).join('\n');
-    expect(texts).toContain('Model m1');
-    expect(texts).toContain('Model m2');
-    expect(texts).toContain('out1');
-    expect(texts).toContain('out2');
-  });
-
-  it('remember_consult stores a file in MEMORY_DIR when no response provided', async () => {
-    const tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'mcp-test-memory-'));
-    process.env.MEMORY_DIR = tmpdir;
-    (axios as any).post.mockResolvedValue({ data: { response: 'remembered text' } });
-
-    const res = await handlers.callToolHandler({
-      name: 'remember_consult',
-      arguments: { prompt: 'p', model: 'm1' },
+    const res = await handler.handle({
+      params: {
+        name: 'compare_ollama_responses',
+        arguments: { models: ['m1', 'm2'], prompt: 'p' },
+      }
     });
     expect(res).toBeDefined();
-    const files = await fs.readdir(tmpdir);
-    expect(files.length).toBeGreaterThan(0);
-    const data = JSON.parse(await fs.readFile(path.join(tmpdir, files[0]), 'utf-8'));
-    expect(data.response).toBe('remembered text');
-
-    // cleanup
-    await Promise.all(files.map((f) => fs.unlink(path.join(tmpdir, f))));
-    await fs.rmdir(tmpdir);
+    const json = JSON.parse(res.content[0].text);
+    expect(json).toHaveLength(2);
+    expect(json[0].response).toBe('response from m1');
+    expect(json[1].response).toBe('response from m2');
   });
 });

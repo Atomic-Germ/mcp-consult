@@ -53,7 +53,7 @@ describe('ConsultOllamaHandler', () => {
       expect(mockService.consult).toHaveBeenCalledWith({
         model: 'llama2',
         prompt: 'Test prompt',
-        stream: false,
+        stream: true,
       });
     });
 
@@ -76,7 +76,7 @@ describe('ConsultOllamaHandler', () => {
         model: 'llama2',
         prompt: 'Test prompt',
         systemPrompt: 'You are helpful',
-        stream: false,
+        stream: true,
       });
     });
 

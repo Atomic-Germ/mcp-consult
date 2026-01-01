@@ -9,7 +9,7 @@ export async function invokeOllama(model: string, prompt: string, system?: strin
     model,
     prompt,
     system,
-    stream: false,
+    stream: true,
   });
 
   if (!resp || !resp.data) throw new Error('No response from Ollama');

@@ -63,6 +63,11 @@ export class ListToolsHandler extends BaseHandler {
                 description:
                   'Request timeout in milliseconds (default: 60000). Increase for complex prompts with system prompts (e.g., 120000-300000 for complex reasoning)',
               },
+              auto_settings: {
+                type: 'boolean',
+                description:
+                  'If true, auto-suggest temperature/timeout based on model name + prompt heuristics (can also be enabled via MCP_AUTO_MODEL_SETTINGS=1). Does not override explicitly provided temperature/timeout_ms.',
+              },
             },
             required: ['prompt'],
           },
@@ -127,6 +132,55 @@ export class ListToolsHandler extends BaseHandler {
               },
             },
             required: ['key', 'value'],
+          },
+        },
+        {
+          name: 'sequential_consultation_chain',
+          description:
+            'Run a sequence of consultations where each consultant builds on previous responses, enabling complex multi-step reasoning.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              consultants: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    model: { type: 'string' },
+                    prompt: { type: 'string' },
+                    systemPrompt: { type: 'string' },
+                    temperature: { type: 'number' },
+                    timeoutMs: { type: 'number' },
+                  },
+                  required: ['id', 'model', 'prompt'],
+                },
+              },
+              context: {
+                type: 'object',
+                properties: {
+                  systemPrompt: { type: 'string' },
+                  variables: { type: 'object' },
+                  passThrough: { type: 'boolean' },
+                },
+              },
+              flowControl: {
+                type: 'object',
+                properties: {
+                  continueOnError: { type: 'boolean' },
+                  maxRetries: { type: 'number' },
+                  retryDelayMs: { type: 'number' },
+                },
+              },
+              memory: {
+                type: 'object',
+                properties: {
+                  storeConversation: { type: 'boolean' },
+                  memoryKey: { type: 'string' },
+                },
+              },
+            },
+            required: ['consultants'],
           },
         },
       ],

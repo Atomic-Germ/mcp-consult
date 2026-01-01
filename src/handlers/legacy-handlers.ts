@@ -208,7 +208,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           model,
           prompt,
           system: system_prompt,
-          stream: false,
+          stream: true,
         });
 
         return {
@@ -364,7 +364,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
             model: m,
             prompt,
             system: system_prompt,
-            stream: false,
+            stream: true,
           });
           contents.push({ type: 'text', text: `Model ${m}:\n${gen.data.response}` });
         } catch (_e) {
@@ -410,7 +410,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
           const gen = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
             model,
             prompt,
-            stream: false,
+            stream: true,
           });
           responseText = gen.data.response;
         } catch (_e) {
@@ -691,7 +691,7 @@ export async function callToolHandler(params: { name: string; arguments?: any })
                   prompt: finalPrompt,
                   system: consultant.systemPrompt || context.systemPrompt,
                   temperature: consultant.temperature,
-                  stream: false,
+                  stream: true,
                 },
                 {
                   timeout: consultant.timeoutMs || 120000,

@@ -48,6 +48,34 @@ export const SequentialChainRequestSchema = z.object({
 
 export type SequentialChainRequest = z.infer<typeof SequentialChainRequestSchema>;
 
+export interface ConversationMessage {
+  consultantId: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ChainStep {
+  step: number;
+  consultantId: string;
+  model: string;
+  prompt: string;
+  response: string;
+  duration: number;
+  error?: string;
+  retryCount?: number;
+}
+
+export interface SequentialChainResult {
+  conversationId: string;
+  status: 'completed' | 'partial' | 'failed';
+  completedSteps: number;
+  totalSteps: number;
+  duration: number;
+  steps: ChainStep[];
+}
+
 // Consultation result
 export const ConsultationResultSchema = z.object({
   consultantId: z.string(),

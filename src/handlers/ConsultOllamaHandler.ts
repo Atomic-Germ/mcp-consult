@@ -2,6 +2,7 @@ import { BaseHandler } from './BaseHandler.js';
 import { OllamaService } from '../services/OllamaService.js';
 import { ModelValidator } from '../services/ModelValidator.js';
 import { ConsultRequest } from '../types/index.js';
+import { shouldAutoModelSettings, suggestConsultSettings } from '../modelSettings.js';
 
 interface MCPResponse {
   content: Array<{ type: string; text: string }>;
@@ -64,7 +65,7 @@ export class ConsultOllamaHandler extends BaseHandler {
       const request: ConsultRequest = {
         model,
         prompt: typedParams.prompt as string,
-        stream: false,
+        stream: true,
       };
 
       // Include system prompt if provided
@@ -80,6 +81,21 @@ export class ConsultOllamaHandler extends BaseHandler {
       // Include timeout if provided
       if (typeof typedParams.timeout_ms === 'number') {
         request.timeout = typedParams.timeout_ms;
+      }
+
+      // Optional: auto-suggest temperature/timeout based on model + prompt heuristics
+      // Inspired by the StandardLlama “autonomy” branch: best-effort defaults rather than strict config.
+      if (shouldAutoModelSettings(typedParams)) {
+        const hasSystemPrompt = Boolean(typedParams.system_prompt);
+        const suggested = suggestConsultSettings({
+          modelName: model,
+          prompt: request.prompt,
+          hasSystemPrompt,
+          baseTimeoutMs: this.ollamaService.getConfig().getTimeout(),
+        });
+
+        if (request.temperature === undefined) request.temperature = suggested.temperature;
+        if (request.timeout === undefined) request.timeout = suggested.timeoutMs;
       }
 
       // Call Ollama service

@@ -1,5 +1,6 @@
 import { BaseHandler } from './BaseHandler.js';
 import { ConsultOllamaHandler } from './ConsultOllamaHandler.js';
+import { SequentialChainHandler } from './SequentialChainHandler.js';
 import { ModelValidator } from '../services/ModelValidator.js';
 import type { OllamaService } from '../services/OllamaService.js';
 
@@ -20,11 +21,15 @@ export class CallToolHandler extends BaseHandler {
   private sessionContext: Map<string, unknown>;
   private modelValidator: ModelValidator;
 
-  constructor(ollamaService: OllamaService, sessionContext: Map<string, unknown>) {
+  constructor(
+    ollamaService: OllamaService,
+    sessionContext: Map<string, unknown>,
+    modelValidator?: ModelValidator
+  ) {
     super();
     this.ollamaService = ollamaService;
     this.sessionContext = sessionContext;
-    this.modelValidator = new ModelValidator(this.ollamaService.getConfig());
+    this.modelValidator = modelValidator || new ModelValidator(this.ollamaService.getConfig());
   }
 
   async handle(request: CallToolRequest): Promise<ToolResponse> {
@@ -237,6 +242,11 @@ export class CallToolHandler extends BaseHandler {
         }
       }
 
+      case 'sequential_consultation_chain': {
+        const handler = new SequentialChainHandler(this.ollamaService, this.modelValidator);
+        return await handler.handle(args);
+      }
+
       default:
         return {
           content: [
@@ -253,5 +263,6 @@ export class CallToolHandler extends BaseHandler {
 
 export const callToolHandler = (
   ollamaService: OllamaService,
-  sessionContext: Map<string, unknown>
-) => new CallToolHandler(ollamaService, sessionContext);
+  sessionContext: Map<string, unknown>,
+  modelValidator?: ModelValidator
+) => new CallToolHandler(ollamaService, sessionContext, modelValidator);

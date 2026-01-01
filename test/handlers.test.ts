@@ -46,6 +46,22 @@ describe('callToolHandler', () => {
     expect(res.content[0].text).toBe('mock response');
   });
 
+  it('consult_ollama can auto-suggest temperature/timeout', async () => {
+    const consultSpy = vi.spyOn(mockService, 'consult');
+
+    await handler.handle({
+      params: {
+        name: 'consult_ollama',
+        arguments: { model: 'qwen2.5-coder:7b', prompt: 'write code', auto_settings: true },
+      },
+    });
+
+    expect(consultSpy).toHaveBeenCalled();
+    const req = consultSpy.mock.calls[0]?.[0] as any;
+    expect(req.temperature).toBeTypeOf('number');
+    expect(req.timeout).toBeTypeOf('number');
+  });
+
   it('compare_ollama_responses returns outputs from multiple models', async () => {
     // Mock consult to return different values based on model
     vi.spyOn(mockService, 'consult').mockImplementation(async (req: any) => {

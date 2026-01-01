@@ -8,6 +8,7 @@ import {
   SequentialChainResult,
   ConversationMessage,
 } from '../types/index.js';
+import { shouldAutoModelSettings, suggestConsultSettings } from '../modelSettings.js';
 
 export class SequentialChainHandler extends BaseHandler {
   private modelValidator: ModelValidator;
@@ -39,6 +40,8 @@ export class SequentialChainHandler extends BaseHandler {
     const context = parseResult.data.context || { passThrough: true };
     const flowControl = parseResult.data.flowControl || { maxRetries: 0, retryDelayMs: 1000, continueOnError: false };
     const memory = parseResult.data.memory || { storeConversation: false };
+
+    const autoSettings = shouldAutoModelSettings((params as Record<string, unknown>) || {});
 
     try {
       const conversationId = `chain-${Date.now()}`;
@@ -72,6 +75,20 @@ export class SequentialChainHandler extends BaseHandler {
           finalPrompt = `${conversationContext}${consultant.id}: ${finalPrompt}`;
         }
 
+        // If enabled, auto-suggest timeout/temperature when omitted.
+        // This keeps chain configs terse while still avoiding "mystery" timeouts.
+        const suggested = autoSettings
+          ? suggestConsultSettings({
+              modelName: consultant.model,
+              prompt: finalPrompt,
+              hasSystemPrompt: Boolean(consultant.systemPrompt || context.systemPrompt),
+              baseTimeoutMs: this.ollamaService.getConfig().getTimeout(),
+            })
+          : null;
+
+        const effectiveTemperature = consultant.temperature ?? suggested?.temperature;
+        const effectiveTimeoutMs = consultant.timeoutMs ?? suggested?.timeoutMs;
+
         while (!stepSuccess && retryCount <= (flowControl.maxRetries || 0)) {
           try {
             // Check model availability
@@ -88,8 +105,8 @@ export class SequentialChainHandler extends BaseHandler {
               model: consultant.model,
               prompt: finalPrompt,
               systemPrompt: consultant.systemPrompt || context.systemPrompt,
-              temperature: consultant.temperature,
-              timeout: consultant.timeoutMs,
+              temperature: effectiveTemperature,
+              timeout: effectiveTimeoutMs,
               stream: true,
             });
 
@@ -112,7 +129,7 @@ export class SequentialChainHandler extends BaseHandler {
               timestamp: new Date(),
               metadata: {
                 model: consultant.model,
-                temperature: consultant.temperature,
+                temperature: effectiveTemperature,
                 duration: Date.now() - stepStartTime,
               },
             };

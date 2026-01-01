@@ -30,6 +30,15 @@ Consult with a specific Ollama model for reasoning and analysis.
 | `systemPrompt` | string | ❌ | System prompt to set model behavior |
 | `timeoutMs` | number | ❌ | Timeout in milliseconds (default: 120000) |
 
+#### Optional: Auto model settings
+
+You can enable best-effort *heuristic* defaults (inspired by the StandardLlama “autonomy” approach) so you don't have to manually tune `temperature`/`timeout_ms` for every model:
+
+- Per-request: pass `auto_settings: true`
+- Globally: set `MCP_AUTO_MODEL_SETTINGS=1` (or `MCP_AUTO_SETTINGS=1`)
+
+When enabled, the server will infer a reasonable `temperature` and `timeout_ms` from the model name (e.g. “coder” → lower temperature, large models/long prompts → longer timeout). It will **not** override explicitly provided `temperature` or `timeout_ms`.
+
 #### Example Request
 
 ```typescript

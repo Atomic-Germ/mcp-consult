@@ -63,6 +63,11 @@ export class ListToolsHandler extends BaseHandler {
                 description:
                   'Request timeout in milliseconds (default: 60000). Increase for complex prompts with system prompts (e.g., 120000-300000 for complex reasoning)',
               },
+              auto_settings: {
+                type: 'boolean',
+                description:
+                  'If true, auto-suggest temperature/timeout based on model name + prompt heuristics (can also be enabled via MCP_AUTO_MODEL_SETTINGS=1). Does not override explicitly provided temperature/timeout_ms.',
+              },
             },
             required: ['prompt'],
           },

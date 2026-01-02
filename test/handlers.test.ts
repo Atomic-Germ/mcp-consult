@@ -16,9 +16,12 @@ describe('callToolHandler', () => {
     // Mock methods
     mockService.consult = vi.fn().mockResolvedValue({ response: 'mock response' } as any);
     mockService.listModels = vi.fn().mockResolvedValue([{ name: 'm1' }, { name: 'm2' }]);
-    
+
     mockValidator = {
-      getAvailableModels: vi.fn().mockResolvedValue([{ name: 'm1', installed: true }, { name: 'm2', installed: true }]),
+      getAvailableModels: vi.fn().mockResolvedValue([
+        { name: 'm1', installed: true },
+        { name: 'm2', installed: true },
+      ]),
       isModelAvailable: vi.fn().mockResolvedValue(true),
       getSuggestions: vi.fn().mockResolvedValue(['m1']),
       getDefaultModel: vi.fn().mockResolvedValue('m1'),
@@ -40,7 +43,7 @@ describe('callToolHandler', () => {
       params: {
         name: 'consult_ollama',
         arguments: { model: 'm1', prompt: 'p' },
-      }
+      },
     });
     expect(res).toBeDefined();
     expect(res.content[0].text).toBe('mock response');
@@ -72,7 +75,7 @@ describe('callToolHandler', () => {
       params: {
         name: 'compare_ollama_responses',
         arguments: { models: ['m1', 'm2'], prompt: 'p' },
-      }
+      },
     });
     expect(res).toBeDefined();
     const json = JSON.parse(res.content[0].text);

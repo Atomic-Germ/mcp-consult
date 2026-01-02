@@ -33,7 +33,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const result = await callTool.handle(request as any);
   return {
     content: result.content as any,
-    isError: result.isError
+    isError: result.isError,
   };
 });
 

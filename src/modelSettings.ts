@@ -42,13 +42,25 @@ export function parseModelName(modelName: string): ParsedModelInfo {
 
   if (lowerName.includes('gpt') || lowerName.includes('chatgpt')) {
     info.family = 'gpt';
-  } else if (lowerName.includes('llama') || lowerName.includes('llama2') || lowerName.includes('llama3')) {
+  } else if (
+    lowerName.includes('llama') ||
+    lowerName.includes('llama2') ||
+    lowerName.includes('llama3')
+  ) {
     info.family = 'llama';
   } else if (lowerName.includes('mistral') || lowerName.includes('dolphin-mistral')) {
     info.family = 'mistral';
-  } else if (lowerName.includes('qwen') || lowerName.includes('deepseek') || lowerName.includes('qwq')) {
+  } else if (
+    lowerName.includes('qwen') ||
+    lowerName.includes('deepseek') ||
+    lowerName.includes('qwq')
+  ) {
     info.family = 'qwen';
-  } else if (lowerName.includes('codellama') || lowerName.includes('code-llama') || lowerName.includes('codeqwen')) {
+  } else if (
+    lowerName.includes('codellama') ||
+    lowerName.includes('code-llama') ||
+    lowerName.includes('codeqwen')
+  ) {
     info.family = 'codellama';
   } else if (lowerName.includes('gemma') || lowerName.includes('gemma3')) {
     info.family = 'gemma';
@@ -91,11 +103,19 @@ export function parseModelName(modelName: string): ParsedModelInfo {
   if (versionMatch) info.version = versionMatch[1];
 
   // Variant
-  if (lowerName.includes('instruct') || lowerName.includes('chat') || lowerName.includes('conversational')) {
+  if (
+    lowerName.includes('instruct') ||
+    lowerName.includes('chat') ||
+    lowerName.includes('conversational')
+  ) {
     info.variant = 'instruct';
   } else if (lowerName.includes('base') || lowerName.includes('pretrained')) {
     info.variant = 'base';
-  } else if (lowerName.includes('code') || lowerName.includes('coder') || lowerName.includes('programming')) {
+  } else if (
+    lowerName.includes('code') ||
+    lowerName.includes('coder') ||
+    lowerName.includes('programming')
+  ) {
     info.variant = 'code';
   } else if (lowerName.includes('math') || lowerName.includes('mathematics')) {
     info.variant = 'math';
@@ -188,7 +208,9 @@ export function shouldAutoModelSettings(params: Record<string, unknown>): boolea
   const localFlag = params.auto_settings;
   if (typeof localFlag === 'boolean') return localFlag;
 
-  const env = (process.env.MCP_AUTO_MODEL_SETTINGS || process.env.MCP_AUTO_SETTINGS || '').trim().toLowerCase();
+  const env = (process.env.MCP_AUTO_MODEL_SETTINGS || process.env.MCP_AUTO_SETTINGS || '')
+    .trim()
+    .toLowerCase();
   if (!env) return false;
   return env === '1' || env === 'true' || env === 'yes' || env === 'on';
 }

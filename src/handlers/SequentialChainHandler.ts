@@ -21,7 +21,9 @@ export class SequentialChainHandler extends BaseHandler {
     this.modelValidator = modelValidator || new ModelValidator(this.ollamaService.getConfig());
   }
 
-  async handle(params: unknown): Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }> {
+  async handle(
+    params: unknown
+  ): Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }> {
     // Validate parameters using Zod schema
     const parseResult = SequentialChainRequestSchema.safeParse(params);
     if (!parseResult.success) {
@@ -38,7 +40,11 @@ export class SequentialChainHandler extends BaseHandler {
 
     const consultants = parseResult.data.consultants;
     const context = parseResult.data.context || { passThrough: true };
-    const flowControl = parseResult.data.flowControl || { maxRetries: 0, retryDelayMs: 1000, continueOnError: false };
+    const flowControl = parseResult.data.flowControl || {
+      maxRetries: 0,
+      retryDelayMs: 1000,
+      continueOnError: false,
+    };
     const memory = parseResult.data.memory || { storeConversation: false };
 
     const autoSettings = shouldAutoModelSettings((params as Record<string, unknown>) || {});
@@ -95,7 +101,7 @@ export class SequentialChainHandler extends BaseHandler {
             const isAvailable = await this.modelValidator.isModelAvailable(consultant.model);
             if (!isAvailable) {
               // Try to find a fallback or just fail
-              // For now, we'll just fail if the specific model isn't available, 
+              // For now, we'll just fail if the specific model isn't available,
               // but we could add auto-selection logic here similar to ConsultOllamaHandler
               throw new Error(`Model '${consultant.model}' is not available`);
             }

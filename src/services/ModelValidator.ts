@@ -17,11 +17,8 @@ export class ModelValidator {
 
   private modelIsSafe(model: any): boolean {
     if (!model) return false;
-    const name = model.name || '';
-    if (this.looksLikeCloudModel(name)) return true;
-    // Accept models that are installed/local
-    if (model.installed || model.local || model.downloaded) return true;
-    return false;
+    // Accept all models returned by Ollama
+    return true;
   }
 
   async getAvailableModels(): Promise<AvailableModel[]> {

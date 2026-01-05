@@ -2,12 +2,12 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, contribute/*]
     tags:
       - 'v*'
   pull_request:
-    branches: [main]
-
+    branches: [main, contribute/*]
+    
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

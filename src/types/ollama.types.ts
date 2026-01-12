@@ -28,3 +28,15 @@ export const OllamaResponseSchema = z.object({
 });
 
 export type OllamaResponse = z.infer<typeof OllamaResponseSchema>;
+
+// A parsed chunk from a streaming response. Handlers may receive these and forward
+// partial text to clients or notifications.
+export interface OllamaStreamChunk {
+  // Preferential text fields we attempt to extract
+  response?: string;
+  text?: string;
+  // Delta-style content (OpenAI-style / Ollama choices)
+  choices?: any;
+  // Raw object when we couldn't interpret other fields
+  raw?: any;
+}

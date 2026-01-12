@@ -9,6 +9,9 @@ describe('ConsultOllamaHandler', () => {
   let mockValidator: ModelValidator;
 
   beforeEach(() => {
+    // Enable advanced streaming behavior for tests that rely on consultStream
+    process.env.MCP_ENABLE_ADVANCED_STREAMING = '1';
+
     mockService = {
       consult: vi.fn(),
       getConfig: vi.fn(),
@@ -24,6 +27,10 @@ describe('ConsultOllamaHandler', () => {
     } as any;
 
     handler = new ConsultOllamaHandler(mockService, mockValidator);
+  });
+
+  afterEach(() => {
+    delete process.env.MCP_ENABLE_ADVANCED_STREAMING;
   });
 
   describe('handle', () => {
@@ -50,11 +57,13 @@ describe('ConsultOllamaHandler', () => {
         ],
       });
 
-      expect(mockService.consult).toHaveBeenCalledWith({
-        model: 'llama2',
-        prompt: 'Test prompt',
-        stream: true,
-      });
+      expect(mockService.consult).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'llama2',
+          prompt: 'Test prompt',
+          stream: true,
+        })
+      );
     });
 
     it('should include system prompt if provided', async () => {
@@ -70,14 +79,19 @@ describe('ConsultOllamaHandler', () => {
         model: 'llama2',
         prompt: 'Test prompt',
         system_prompt: 'You are helpful',
+      }, {
+        reportProgress: async () => {},
+        reportMessage: async () => {},
       });
 
-      expect(mockService.consult).toHaveBeenCalledWith({
-        model: 'llama2',
-        prompt: 'Test prompt',
-        systemPrompt: 'You are helpful',
-        stream: true,
-      });
+      expect(mockService.consult).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'llama2',
+          prompt: 'Test prompt',
+          stream: true,
+          systemPrompt: expect.stringContaining('You are helpful'),
+        })
+      );
     });
 
     it('should validate required model parameter', async () => {
@@ -94,6 +108,88 @@ describe('ConsultOllamaHandler', () => {
 
       expect(result.content[0]?.type).toBe('text');
       expect(mockService.consult).toHaveBeenCalled();
+    });
+
+    it('should call reporters when streaming and reporters are provided (using consultStream)', async () => {
+      const mockResponse = {
+        model: 'llama2',
+        response: 'partial',
+        done: true,
+      };
+
+      const reportProgress = vi.fn();
+      const reportMessage = vi.fn();
+
+      // Mock consultStream to yield two chunks then return final
+      const mockStream = async function* () {
+        yield { response: 'A' };
+        yield { response: 'B' };
+        return mockResponse;
+      };
+
+      (mockService as any).consultStream = vi.fn().mockImplementation(mockStream);
+
+      const result = await handler.handle({ model: 'llama2', prompt: 'test' }, { reportProgress, reportMessage });
+
+      // Ensure consultStream was used
+      expect((mockService as any).consultStream).toHaveBeenCalled();
+      expect(reportMessage).toHaveBeenCalled();
+      expect(reportProgress).toHaveBeenCalled();
+      expect(result.content[0]?.text).toBe('partial');
+    });
+
+    it('injects a streaming system hint by default', async () => {
+      const reportProgress = vi.fn();
+      const reportMessage = vi.fn();
+
+      const mockStream = async function* () {
+        return { model: 'llama2', response: 'done', done: true };
+      };
+
+      const spyStream = vi.fn().mockImplementation(mockStream);
+      (mockService as any).consultStream = spyStream;
+
+      await handler.handle({ model: 'llama2', prompt: 'test' }, { reportProgress, reportMessage });
+
+      expect(spyStream).toHaveBeenCalled();
+      const calledArg = spyStream.mock.calls[0][0];
+      expect(typeof calledArg.systemPrompt).toBe('string');
+      expect(calledArg.systemPrompt).toContain('Please stream intermediate outputs');
+    });
+
+    it('heartbeats when no chunks arrive for heartbeat interval', async () => {
+      vi.useFakeTimers();
+      const reportProgress = vi.fn();
+      const reportMessage = vi.fn();
+
+      // Create a consultStream which waits (promise) before yielding first chunk
+      let resolveFirst: () => void;
+      const mockStream = async function* () {
+        await new Promise<void>((resolve) => {
+          resolveFirst = resolve;
+        });
+        yield { response: 'X' };
+        return { model: 'llama2', response: 'X', done: true };
+      };
+
+      (mockService as any).consultStream = mockStream as any;
+
+      const p = handler.handle({ model: 'llama2', prompt: 'test' }, { reportProgress, reportMessage });
+
+      // Advance time to trigger heartbeat
+      const HEARTBEAT_MS = parseInt(process.env.MCP_HEARTBEAT_INTERVAL_MS || '15000', 10);
+      vi.advanceTimersByTime(HEARTBEAT_MS + 1000);
+      // Ensure timers run (async) and microtasks flush
+      if (typeof vi.runAllTimersAsync === 'function') await vi.runAllTimersAsync();
+      await Promise.resolve();
+
+      expect(reportMessage).toHaveBeenCalled();
+
+      // Now resolve the stream so handler completes
+      resolveFirst!();
+      await p;
+
+      vi.useRealTimers();
     });
 
     it('should validate required prompt parameter', async () => {

@@ -84,12 +84,16 @@ export class SequentialChainHandler extends BaseHandler {
         // If enabled, auto-suggest timeout/temperature when omitted.
         // This keeps chain configs terse while still avoiding "mystery" timeouts.
         const suggested = autoSettings
-          ? suggestConsultSettings({
-              modelName: consultant.model,
-              prompt: finalPrompt,
-              hasSystemPrompt: Boolean(consultant.systemPrompt || context.systemPrompt),
-              baseTimeoutMs: this.ollamaService.getConfig().getTimeout(),
-            })
+          ? (() => {
+              const cfg = this.ollamaService.getConfig && typeof this.ollamaService.getConfig === 'function' ? this.ollamaService.getConfig() : undefined;
+              const baseTimeoutMs = (cfg && typeof cfg.getTimeout === 'function') ? cfg.getTimeout() : 30000;
+              return suggestConsultSettings({
+                modelName: consultant.model,
+                prompt: finalPrompt,
+                hasSystemPrompt: Boolean(consultant.systemPrompt || context.systemPrompt),
+                baseTimeoutMs,
+              });
+            })()
           : null;
 
         const effectiveTemperature = consultant.temperature ?? suggested?.temperature;
@@ -107,14 +111,36 @@ export class SequentialChainHandler extends BaseHandler {
             }
 
             // Make the consultation call
-            const response = await this.ollamaService.consult({
+            const consultRequest: any = {
               model: consultant.model,
               prompt: finalPrompt,
               systemPrompt: consultant.systemPrompt || context.systemPrompt,
               temperature: effectiveTemperature,
               timeout: effectiveTimeoutMs,
               stream: true,
-            });
+            };
+
+            // Pass reporters through if present on the outer params (for compare/stdio callers)
+            // Note: handler signature may accept reporters as second param in future; for now we check params
+            // provided via the args object under a _reporters field.
+            const maybeReporters = (params as any)?._reporters;
+            if (maybeReporters) {
+              let accumulatedChars = 0;
+              consultRequest.onChunk = (chunk: any) => {
+                const text = (chunk && (chunk.response || chunk.text)) ||
+                  (chunk && chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content) ||
+                  '';
+                if (text && maybeReporters.reportMessage) {
+                  void maybeReporters.reportMessage(text);
+                }
+                if (text && maybeReporters.reportProgress) {
+                  accumulatedChars += text.length;
+                  void maybeReporters.reportProgress({ progress: accumulatedChars });
+                }
+              };
+            }
+
+            const response = await this.ollamaService.consult(consultRequest);
 
             stepResponse = response.response;
             stepSuccess = true;

@@ -29,8 +29,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   // The CallToolHandler expects { params: { name, arguments } }
-  // The request object from SDK matches this structure
-  const result = await callTool.handle(request as any);
+  // Preserve progressToken if the client requested progress notifications
+  const progressToken = request.params && (request.params as any)._meta && (request.params as any)._meta.progressToken;
+
+  // Create reporters by default. reportMessage will always send notifications/message (clients may ignore them).
+  // reportProgress will only send notifications/progress if a progressToken was provided by the client; otherwise it's a no-op.
+  const reporters = {
+    reportMessage: async (text: string) => {
+      const params = progressToken !== undefined ? { message: text, _meta: { progressToken } } : { message: text };
+      await server.notification({ method: 'notifications/message', params });
+    },
+    reportProgress: progressToken !== undefined
+      ? async ({ progress, total }: { progress: number; total?: number }) => {
+          await server.notification({ method: 'notifications/progress', params: { progress, total, progressToken } });
+        }
+      : async () => {
+          /* no-op when progressToken absent */
+        },
+  };
+
+  const result = await callTool.handle(request as any, reporters);
   return {
     content: result.content as any,
     isError: result.isError,

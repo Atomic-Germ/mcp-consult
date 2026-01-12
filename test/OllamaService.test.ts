@@ -202,6 +202,78 @@ describe('OllamaService', () => {
 
       expect(fetchSpy).toHaveBeenCalledTimes(1); // no retries
     });
+
+    it('should stream response when stream is true', async () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(JSON.stringify({ response: 'Hello ' }) + '\n'));
+          controller.enqueue(encoder.encode(JSON.stringify({ response: 'world' }) + '\n'));
+          controller.close();
+        },
+      });
+
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        body: stream,
+      });
+
+      const result = await service.consult({ model: 'llama2', prompt: 'Test prompt', stream: true });
+
+      expect(result.response).toBe('Hello world');
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'http://localhost:11434/api/generate',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"stream":true'),
+        })
+      );
+    });
+
+    it('should parse SSE-style data: lines and ignore [DONE]', async () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode('data: ' + JSON.stringify({ response: 'Alpha' }) + '\n\n'));
+          controller.enqueue(encoder.encode('data: ' + JSON.stringify({ response: 'Beta' }) + '\n\n'));
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.close();
+        },
+      });
+
+      fetchSpy.mockResolvedValueOnce({ ok: true, body: stream });
+
+      const result = await service.consult({ model: 'llama2', prompt: 'Test prompt', stream: true });
+
+      expect(result.response).toBe('AlphaBeta');
+    });
+
+    it('consultStream yields chunks and returns final response', async () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(JSON.stringify({ response: 'X' }) + '\n'));
+          controller.enqueue(encoder.encode(JSON.stringify({ response: 'Y' }) + '\n'));
+          controller.close();
+        },
+      });
+
+      fetchSpy.mockResolvedValueOnce({ ok: true, body: stream });
+
+      const iterator = service.consultStream({ model: 'llama2', prompt: 'Test', stream: true })[Symbol.asyncIterator]();
+
+      const first = await iterator.next();
+      expect(first.done).toBe(false);
+      expect(first.value.text || first.value.response).toBe('X');
+
+      const second = await iterator.next();
+      expect(second.done).toBe(false);
+      expect(second.value.text || second.value.response).toBe('Y');
+
+      const final = await iterator.next();
+      expect(final.done).toBe(true);
+      expect(final.value.response).toBe('XY');
+    });
   });
 
   describe('compareModels', () => {

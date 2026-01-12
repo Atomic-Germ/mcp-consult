@@ -32,13 +32,13 @@ export class CallToolHandler extends BaseHandler {
     this.modelValidator = modelValidator || new ModelValidator(this.ollamaService.getConfig());
   }
 
-  async handle(request: CallToolRequest): Promise<ToolResponse> {
+  async handle(request: CallToolRequest, reporters?: { reportProgress?: (p: {progress:number; total?:number})=>Promise<void>; reportMessage?: (text:string)=>Promise<void> }): Promise<ToolResponse> {
     const { name, arguments: args } = request.params;
 
     switch (name) {
       case 'consult_ollama': {
         const handler = new ConsultOllamaHandler(this.ollamaService, this.modelValidator);
-        return await handler.handle(args);
+        return await handler.handle(args, reporters);
       }
 
       case 'list_ollama_models': {
@@ -140,6 +140,8 @@ export class CallToolHandler extends BaseHandler {
             const available = await this.modelValidator.getAvailableModels();
             modelsToUse = available.slice(0, 2).map((m) => m.name);
 
+          // If reporters were supplied (from stdio client requesting progress), propagate them to the per-model handler
+
             if (modelsToUse.length === 0) {
               return {
                 content: [
@@ -156,7 +158,7 @@ export class CallToolHandler extends BaseHandler {
           const results = await Promise.allSettled(
             modelsToUse.map(async (model: string) => {
               const handler = new ConsultOllamaHandler(this.ollamaService, this.modelValidator);
-              const result = await handler.handle({ model, prompt, context });
+              const result = await handler.handle({ model, prompt, context }, reporters);
               return {
                 model,
                 response: result.content[0]?.text || '',

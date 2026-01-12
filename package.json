@@ -24,7 +24,6 @@
     "@modelcontextprotocol/sdk": "^0.4.0",
     "axios": "^1.6.0",
     "js-yaml": "^4.1.1",
-    "mcp-ollama-consult": "file:mcp-ollama-consult-1.1.0.tgz",
     "zod": "^3.22.0"
   },
   "devDependencies": {
